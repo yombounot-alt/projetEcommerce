@@ -1,0 +1,11 @@
+node_modules
+dist
+coverage
+uploads/*
+!uploads/.gitkeep
+.env
+.env.local
+*.log
+.git
+.vscode
+tests

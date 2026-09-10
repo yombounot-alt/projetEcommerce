@@ -11,6 +11,7 @@ import { Seo } from "@/components/common/Seo";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes.constants";
+import { useDeleteProductMutation } from "@/features/products/api/useProductMutations";
 import { useProductsQuery } from "@/features/products/api/useProductsQuery";
 import { formatPrice } from "@/utils/format";
 import type { ProductListItem } from "@/types/product.types";
@@ -19,6 +20,14 @@ export default function AdminProductsPage() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const { data, isLoading } = useProductsQuery({ search, page, pageSize: 10 });
+  const deleteProduct = useDeleteProductMutation();
+
+  function handleDelete(product: ProductListItem) {
+    deleteProduct.mutate(product.id, {
+      onSuccess: () => toast.success("Produit supprimé."),
+      onError: () => toast.error("Impossible de supprimer ce produit."),
+    });
+  }
 
   const columns: DataTableColumn<ProductListItem>[] = [
     {
@@ -70,7 +79,7 @@ export default function AdminProductsPage() {
             title="Supprimer ce produit ?"
             description={`« ${product.name} » sera définitivement supprimé du catalogue.`}
             destructive
-            onConfirm={() => toast.success("Produit supprimé.")}
+            onConfirm={() => handleDelete(product)}
           />
         </div>
       ),

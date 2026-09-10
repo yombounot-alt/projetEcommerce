@@ -29,6 +29,7 @@ export interface ProductDimensions {
 export interface ProductReview {
   id: UUID;
   productId: UUID;
+  authorId: UUID;
   authorName: string;
   authorAvatarUrl?: string;
   rating: number;

@@ -3,8 +3,15 @@ import { env } from "@/app/config/env";
 import { mockDelay } from "@/lib/mock-delay";
 import { mockUsers } from "@/mocks/users";
 import { ApiError } from "@/types/api.types";
-import type { AuthSession } from "@/types/user.types";
+import type { AuthSession, User } from "@/types/user.types";
 import type { LoginFormValues, RegisterFormValues } from "@/schemas/auth.schema";
+
+export interface UpdateProfileInput {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+}
 
 function createMockSession(email: string): AuthSession {
   const user = mockUsers.find((u) => u.email.toLowerCase() === email.toLowerCase());
@@ -42,6 +49,7 @@ export const authService = {
         email: payload.email,
         role: "customer" as const,
         status: "active" as const,
+        isVerified: false,
         createdAt: new Date().toISOString(),
       };
       mockUsers.push(newUser);
@@ -82,5 +90,75 @@ export const authService = {
       return;
     }
     await httpClient.post("/auth/logout");
+  },
+
+  async updateProfile(userId: string, changes: UpdateProfileInput): Promise<User> {
+    if (env.useMocks) {
+      const user = mockUsers.find((u) => u.id === userId);
+      if (!user) {
+        throw new ApiError({ message: "Utilisateur introuvable.", code: "USER_NOT_FOUND", status: 404 });
+      }
+      Object.assign(user, changes);
+      return mockDelay(user, 300);
+    }
+    const { data } = await httpClient.patch<User>("/auth/profile", changes);
+    return data;
+  },
+
+  async changePassword(userId: string, currentPassword: string, newPassword: string): Promise<AuthSession> {
+    if (env.useMocks) {
+      void currentPassword;
+      void newPassword;
+      const user = mockUsers.find((u) => u.id === userId);
+      if (!user) {
+        throw new ApiError({ message: "Utilisateur introuvable.", code: "USER_NOT_FOUND", status: 404 });
+      }
+      return mockDelay(
+        {
+          user,
+          accessToken: `mock.${btoa(user.id)}.${Date.now()}`,
+          expiresAt: new Date(Date.now() + 60 * 60_000).toISOString(),
+        },
+        400,
+      );
+    }
+    const { data } = await httpClient.patch<AuthSession>("/auth/change-password", {
+      currentPassword,
+      newPassword,
+    });
+    return data;
+  },
+
+  async requestEmailVerification(): Promise<{ message: string }> {
+    if (env.useMocks) {
+      return mockDelay({ message: "Un email de vérification a été envoyé." }, 400);
+    }
+    const { data } = await httpClient.post<{ message: string }>("/auth/verify-email/request");
+    return data;
+  },
+
+  async verifyEmail(token: string): Promise<{ message: string }> {
+    if (env.useMocks) {
+      void token;
+      return mockDelay({ message: "Votre email a été vérifié avec succès." }, 400);
+    }
+    const { data } = await httpClient.post<{ message: string }>("/auth/verify-email", { token });
+    return data;
+  },
+
+  /**
+   * Échange le cookie httpOnly de refresh token contre un nouvel access token.
+   * Non supporté en mode mock : il n'existe pas de vraie session/cookie à renouveler.
+   */
+  async refresh(): Promise<AuthSession> {
+    if (env.useMocks) {
+      throw new ApiError({
+        message: "Session expirée.",
+        code: "REFRESH_NOT_SUPPORTED_IN_MOCK",
+        status: 401,
+      });
+    }
+    const { data } = await httpClient.post<AuthSession>("/auth/refresh");
+    return data;
   },
 };

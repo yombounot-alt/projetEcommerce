@@ -15,12 +15,27 @@ export const ROUTES = {
   register: "/register",
   forgotPassword: "/forgot-password",
   resetPassword: "/reset-password",
+  verifyEmail: "/verify-email",
 
   profile: "/profile",
   orders: "/orders",
   orderDetails: (id: string) => `/orders/${id}`,
   wishlist: "/wishlist",
   addresses: "/addresses",
+
+  about: "/about",
+  careers: "/careers",
+  sellWithUs: "/sell-with-us",
+  help: {
+    shipping: "/help/shipping",
+    contact: "/help/contact",
+    faq: "/help/faq",
+  },
+  legal: {
+    terms: "/legal/terms",
+    privacy: "/legal/privacy",
+    notice: "/legal/notice",
+  },
 
   admin: {
     root: "/admin",
@@ -37,6 +52,8 @@ export const ROUTES = {
   seller: {
     root: "/seller",
     products: "/seller/products",
+    productNew: "/seller/products/new",
+    productEdit: (id: string) => `/seller/products/${id}/edit`,
     orders: "/seller/orders",
     customers: "/seller/customers",
     analytics: "/seller/analytics",

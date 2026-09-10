@@ -6,10 +6,10 @@ import { Seo } from "@/components/common/Seo";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes.constants";
 import { ProductGrid } from "@/features/products/components/ProductGrid";
-import { useWishlistStore } from "@/store/wishlistStore";
+import { useWishlist } from "@/features/wishlist/api/useWishlist";
 
 export default function WishlistPage() {
-  const items = useWishlistStore((state) => state.items);
+  const { items } = useWishlist();
 
   return (
     <div className="container-page py-10">

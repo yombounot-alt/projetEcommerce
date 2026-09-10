@@ -5,14 +5,14 @@ import { PaginationControl } from "@/components/common/PaginationControl";
 import { SearchBar } from "@/components/common/SearchBar";
 import { Seo } from "@/components/common/Seo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useUsersQuery } from "@/features/users/api/useUsersQuery";
+import { useSellerCustomersQuery } from "@/features/users/api/useUsersQuery";
 import { formatDate, getInitials } from "@/utils/format";
 import type { User } from "@/types/user.types";
 
 export default function SellerCustomersPage() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const { data, isLoading } = useUsersQuery({ search, role: "customer", page, pageSize: 10 });
+  const { data, isLoading } = useSellerCustomersQuery({ search, page, pageSize: 10 });
 
   const columns: DataTableColumn<User>[] = [
     {

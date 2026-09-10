@@ -4,6 +4,8 @@ import { toast } from "sonner";
 import { Seo } from "@/components/common/Seo";
 import { ROUTES } from "@/constants/routes.constants";
 import { CartSummary } from "@/features/cart/components/CartSummary";
+import { useCart } from "@/features/cart/api/useCart";
+import { useInitializePaymentMutation } from "@/features/checkout/api/usePaymentMutations";
 import { useCreateOrderMutation } from "@/features/orders/api/useOrderMutations";
 import { CheckoutStepper } from "@/features/checkout/components/CheckoutStepper";
 import { CustomerInfoStep } from "@/features/checkout/components/CustomerInfoStep";
@@ -12,7 +14,7 @@ import { ShippingAddressStep } from "@/features/checkout/components/ShippingAddr
 import { ShippingMethodStep } from "@/features/checkout/components/ShippingMethodStep";
 import type { CustomerInfoValues, PaymentMethodValues, ShippingAddressValues, ShippingMethodValues } from "@/schemas/checkout.schema";
 import { useAuthStore } from "@/store/authStore";
-import { selectCartSubtotal, useCartStore } from "@/store/cartStore";
+import { ApiError } from "@/types/api.types";
 
 const STEPS = [
   { key: "customer", label: "Informations" },
@@ -24,10 +26,10 @@ const STEPS = [
 export default function CheckoutPage() {
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
-  const items = useCartStore((state) => state.items);
-  const subtotal = useCartStore(selectCartSubtotal);
-  const clearCart = useCartStore((state) => state.clear);
+  const { items, subtotal, clear: clearCart } = useCart();
   const createOrder = useCreateOrderMutation();
+  const initializePayment = useInitializePaymentMutation();
+  const isSubmitting = createOrder.isPending || initializePayment.isPending;
 
   const [stepIndex, setStepIndex] = useState(0);
   const [customerInfo, setCustomerInfo] = useState<CustomerInfoValues>({
@@ -38,7 +40,6 @@ export default function CheckoutPage() {
   });
   const [shippingMethod, setShippingMethod] = useState<ShippingMethodValues>({ methodId: "standard" });
   const [shippingCost, setShippingCost] = useState(0);
-  const [shippingLabel, setShippingLabel] = useState("Livraison standard");
 
   if (items.length === 0) {
     return <Navigate to={ROUTES.cart} replace />;
@@ -47,33 +48,50 @@ export default function CheckoutPage() {
   function handlePaymentSubmit(payment: PaymentMethodValues) {
     createOrder.mutate(
       {
-        customerId: user?.id ?? "guest",
-        customerName: `${customerInfo.firstName} ${customerInfo.lastName}`,
-        customerEmail: customerInfo.email,
-        items,
+        items: items.map((item) => ({ productId: item.productId, quantity: item.quantity })),
         shippingAddress: {
-          id: "temp", label: "Livraison", fullName: shippingAddress.fullName, line1: shippingAddress.line1,
-          line2: shippingAddress.line2, city: shippingAddress.city, postalCode: shippingAddress.postalCode,
-          country: shippingAddress.country, phone: shippingAddress.phone, isDefault: false,
+          fullName: shippingAddress.fullName,
+          line1: shippingAddress.line1,
+          line2: shippingAddress.line2,
+          city: shippingAddress.city,
+          postalCode: shippingAddress.postalCode,
+          country: shippingAddress.country,
+          phone: shippingAddress.phone,
         },
-        billingAddress: {
-          id: "temp-billing", label: "Facturation", fullName: shippingAddress.fullName, line1: shippingAddress.line1,
-          line2: shippingAddress.line2, city: shippingAddress.city, postalCode: shippingAddress.postalCode,
-          country: shippingAddress.country, phone: shippingAddress.phone, isDefault: false,
-        },
-        shippingMethod: shippingLabel,
-        shippingCost,
-        discount: 0,
+        shippingMethod: shippingMethod.methodId,
         paymentMethod: payment.method,
       },
       {
         onSuccess: (order) => {
           clearCart();
-          toast.success("Votre commande a été confirmée !");
-          navigate(ROUTES.orderConfirmation(order.orderNumber));
+          initializePayment.mutate(
+            { orderId: order.id, method: payment.method },
+            {
+              onSuccess: ({ status }) => {
+                toast.success(
+                  status === "captured"
+                    ? "Paiement confirmé, votre commande a été passée !"
+                    : "Commande enregistrée — paiement en attente de confirmation.",
+                );
+                navigate(ROUTES.orderConfirmation(order.orderNumber));
+              },
+              onError: (error) => {
+                toast.error(
+                  error instanceof ApiError
+                    ? error.message
+                    : "Le paiement n'a pas pu être initialisé. Votre commande reste enregistrée.",
+                );
+                navigate(ROUTES.orderConfirmation(order.orderNumber));
+              },
+            },
+          );
         },
-        onError: () => {
-          toast.error("Une erreur est survenue lors de la création de votre commande.");
+        onError: (error) => {
+          toast.error(
+            error instanceof ApiError
+              ? error.message
+              : "Une erreur est survenue lors de la création de votre commande.",
+          );
         },
       },
     );
@@ -112,10 +130,9 @@ export default function CheckoutPage() {
               subtotal={subtotal}
               defaultValues={shippingMethod}
               onBack={() => setStepIndex(1)}
-              onNext={(values, cost, label) => {
+              onNext={(values, cost) => {
                 setShippingMethod(values);
                 setShippingCost(cost);
-                setShippingLabel(label);
                 setStepIndex(3);
               }}
             />
@@ -123,7 +140,7 @@ export default function CheckoutPage() {
           {stepIndex === 3 && (
             <PaymentStep
               defaultValues={{ method: "card", billingSameAsShipping: true }}
-              isSubmitting={createOrder.isPending}
+              isSubmitting={isSubmitting}
               onBack={() => setStepIndex(2)}
               onSubmit={handlePaymentSubmit}
             />

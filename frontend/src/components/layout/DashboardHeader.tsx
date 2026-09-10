@@ -13,13 +13,9 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { UserMenu } from "@/components/layout/UserMenu";
 import type { DashboardNavItem } from "@/components/layout/DashboardSidebar";
 import { DashboardSidebar } from "@/components/layout/DashboardSidebar";
+import { useMarkNotificationAsReadMutation } from "@/features/notifications/api/useNotificationMutations";
+import { useNotificationsQuery } from "@/features/notifications/api/useNotificationsQuery";
 import { formatRelativeTime } from "@/utils/format";
-
-const MOCK_NOTIFICATIONS = [
-  { id: "1", message: "Nouvelle commande #LUM-100045 reçue", date: new Date(Date.now() - 15 * 60_000) },
-  { id: "2", message: "Le stock de « Casque audio Pro » est faible", date: new Date(Date.now() - 3 * 3_600_000) },
-  { id: "3", message: "Un nouvel avis 5★ a été publié", date: new Date(Date.now() - 26 * 3_600_000) },
-];
 
 interface DashboardHeaderProps {
   breadcrumb?: ReactNode;
@@ -36,6 +32,11 @@ export function DashboardHeader({
   isMobileOpen,
   onMobileOpenChange,
 }: DashboardHeaderProps) {
+  const { data } = useNotificationsQuery();
+  const markAsRead = useMarkNotificationAsReadMutation();
+  const notifications = data?.items ?? [];
+  const hasUnread = notifications.some((n) => !n.isRead);
+
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-background/95 px-4 backdrop-blur">
       <Sheet open={isMobileOpen} onOpenChange={onMobileOpenChange}>
@@ -60,16 +61,25 @@ export function DashboardHeader({
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon" className="relative" aria-label="Notifications">
             <BellIcon className="size-5" />
-            <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-accent" />
+            {hasUnread && <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-accent" />}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-80">
           <DropdownMenuLabel>Notifications</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          {MOCK_NOTIFICATIONS.map((notification) => (
-            <DropdownMenuItem key={notification.id} className="flex-col items-start gap-0.5">
-              <span className="text-sm text-foreground">{notification.message}</span>
-              <span className="text-xs text-muted-foreground">{formatRelativeTime(notification.date)}</span>
+          {notifications.length === 0 && (
+            <p className="px-2 py-3 text-center text-sm text-muted-foreground">Aucune notification.</p>
+          )}
+          {notifications.map((notification) => (
+            <DropdownMenuItem
+              key={notification.id}
+              className="flex-col items-start gap-0.5"
+              onSelect={() => !notification.isRead && markAsRead.mutate(notification.id)}
+            >
+              <span className={notification.isRead ? "text-sm text-muted-foreground" : "text-sm font-medium text-foreground"}>
+                {notification.message}
+              </span>
+              <span className="text-xs text-muted-foreground">{formatRelativeTime(new Date(notification.createdAt))}</span>
             </DropdownMenuItem>
           ))}
         </DropdownMenuContent>

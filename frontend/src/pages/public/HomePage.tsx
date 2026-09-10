@@ -8,12 +8,13 @@ import { ROUTES } from "@/constants/routes.constants";
 import { useCategoriesQuery } from "@/features/categories/api/useCategoriesQuery";
 import { useFeaturedProductsQuery, useNewArrivalsQuery } from "@/features/products/api/useFeaturedProductsQuery";
 import { ProductGrid } from "@/features/products/components/ProductGrid";
+import { formatPrice } from "@/utils/format";
 
 const TRUST_POINTS = [
   {
     icon: TruckIcon,
     title: "Livraison rapide",
-    description: `Offerte dès ${FREE_SHIPPING_THRESHOLD} € d'achat, partout en France.`,
+    description: `Offerte dès ${formatPrice(FREE_SHIPPING_THRESHOLD)} d'achat, partout en Guinée.`,
   },
   {
     icon: ShieldCheckIcon,
@@ -88,12 +89,14 @@ export default function HomePage() {
               to={`${ROUTES.shop}?category=${category.slug}`}
               className="group relative aspect-square overflow-hidden rounded-xl bg-muted"
             >
-              <img
-                src={category.imageUrl}
-                alt={category.name}
-                loading="lazy"
-                className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
-              />
+              {category.imageUrl && (
+                <img
+                  src={category.imageUrl}
+                  alt={category.name}
+                  loading="lazy"
+                  className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+              )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0" />
               <p className="absolute inset-x-0 bottom-3 text-center text-sm font-semibold text-white">
                 {category.name}

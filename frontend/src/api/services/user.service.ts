@@ -59,6 +59,28 @@ export const userService = {
     return data;
   },
 
+  /** Customers who bought at least one of the seller's own products (backend enforces the scope). */
+  async listSellerCustomers(filters: Pick<UserListFilters, "search" | "page" | "pageSize"> = {}): Promise<PaginatedResponse<User>> {
+    if (env.useMocks) {
+      const page = filters.page ?? 1;
+      const pageSize = filters.pageSize ?? PAGE_SIZE_DEFAULT;
+      const filtered = filterUsers({ ...filters, role: "customer" });
+      const start = (page - 1) * pageSize;
+
+      return mockDelay({
+        items: filtered.slice(start, start + pageSize),
+        pagination: {
+          page,
+          pageSize,
+          totalItems: filtered.length,
+          totalPages: Math.max(1, Math.ceil(filtered.length / pageSize)),
+        },
+      });
+    }
+    const { data } = await httpClient.get<PaginatedResponse<User>>("/seller/customers", { params: filters });
+    return data;
+  },
+
   async getById(id: string): Promise<User | null> {
     if (env.useMocks) {
       return mockDelay(getUserById(id) ?? null, 200);

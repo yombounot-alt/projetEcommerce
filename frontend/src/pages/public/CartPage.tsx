@@ -6,16 +6,14 @@ import { Seo } from "@/components/common/Seo";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes.constants";
 import { STANDARD_SHIPPING_COST, FREE_SHIPPING_THRESHOLD } from "@/constants/app.constants";
+import { useCart } from "@/features/cart/api/useCart";
 import { CartLineItem } from "@/features/cart/components/CartLineItem";
 import { CartSummary } from "@/features/cart/components/CartSummary";
 import { CouponForm } from "@/features/cart/components/CouponForm";
-import { selectCartSubtotal, useCartStore } from "@/store/cartStore";
 import type { Coupon } from "@/types/order.types";
 
 export default function CartPage() {
-  const items = useCartStore((state) => state.items);
-  const clear = useCartStore((state) => state.clear);
-  const subtotal = useCartStore(selectCartSubtotal);
+  const { items, subtotal, clear } = useCart();
   const navigate = useNavigate();
   const [coupon, setCoupon] = useState<Coupon | null>(null);
 

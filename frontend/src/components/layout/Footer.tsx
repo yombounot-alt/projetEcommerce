@@ -21,25 +21,25 @@ const FOOTER_SECTIONS = [
     title: "Support",
     links: [
       { label: "Suivi de commande", to: ROUTES.orders },
-      { label: "Livraison & retours", to: "/help/shipping" },
-      { label: "Contact", to: "/help/contact" },
-      { label: "FAQ", to: "/help/faq" },
+      { label: "Livraison & retours", to: ROUTES.help.shipping },
+      { label: "Contact", to: ROUTES.help.contact },
+      { label: "FAQ", to: ROUTES.help.faq },
     ],
   },
   {
     title: "Entreprise",
     links: [
-      { label: "À propos", to: "/about" },
-      { label: "Carrières", to: "/careers" },
-      { label: "Devenir vendeur", to: "/sell-with-us" },
+      { label: "À propos", to: ROUTES.about },
+      { label: "Carrières", to: ROUTES.careers },
+      { label: "Devenir vendeur", to: ROUTES.sellWithUs },
     ],
   },
   {
     title: "Légal",
     links: [
-      { label: "Conditions générales", to: "/legal/terms" },
-      { label: "Politique de confidentialité", to: "/legal/privacy" },
-      { label: "Mentions légales", to: "/legal/notice" },
+      { label: "Conditions générales", to: ROUTES.legal.terms },
+      { label: "Politique de confidentialité", to: ROUTES.legal.privacy },
+      { label: "Mentions légales", to: ROUTES.legal.notice },
     ],
   },
 ];

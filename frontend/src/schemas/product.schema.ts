@@ -2,21 +2,21 @@ import { z } from "zod";
 
 export const productFormSchema = z
   .object({
-    name: z.string().trim().min(3, "Le nom doit contenir au moins 3 caractères").max(150),
+    name: z.string().trim().min(3, "Le nom doit contenir au moins 3 caractères").max(150, "Nom trop long (150 caractères maximum)"),
     description: z.string().trim().min(20, "Description trop courte (20 caractères minimum)"),
-    shortDescription: z.string().trim().max(200),
+    shortDescription: z.string().trim().max(200, "Description courte trop longue (200 caractères maximum)"),
     sku: z
       .string()
       .trim()
       .min(3, "SKU requis")
       .regex(/^[A-Z0-9-]+$/, "SKU en majuscules, chiffres et tirets uniquement"),
     price: z.coerce.number().positive("Le prix doit être positif"),
-    compareAtPrice: z.coerce.number().positive().optional(),
+    compareAtPrice: z.coerce.number().positive("Le prix barré doit être positif").optional(),
     categoryId: z.string().min(1, "Catégorie requise"),
     brandId: z.string().optional(),
     stock: z.coerce.number().int().min(0, "Le stock ne peut pas être négatif"),
-    weightKg: z.coerce.number().positive().optional(),
-    images: z.array(z.string().url()).min(1, "Au moins une image est requise"),
+    weightKg: z.coerce.number().positive("Le poids doit être positif").optional(),
+    images: z.array(z.string().url("Image invalide")).min(1, "Au moins une image est requise"),
     status: z.enum(["draft", "published", "archived"]),
   })
   .refine(
@@ -43,9 +43,13 @@ export const categoryFormSchema = z.object({
 export type CategoryFormValues = z.infer<typeof categoryFormSchema>;
 
 export const reviewFormSchema = z.object({
-  rating: z.coerce.number().int().min(1, "Note requise").max(5),
-  title: z.string().trim().min(3, "Titre trop court").max(120),
-  comment: z.string().trim().min(10, "Commentaire trop court (10 caractères minimum)").max(2000),
+  rating: z.coerce.number().int().min(1, "Note requise").max(5, "Note maximale : 5"),
+  title: z.string().trim().min(3, "Titre trop court").max(120, "Titre trop long (120 caractères maximum)"),
+  comment: z
+    .string()
+    .trim()
+    .min(10, "Commentaire trop court (10 caractères minimum)")
+    .max(2000, "Commentaire trop long (2000 caractères maximum)"),
 });
 
 export type ReviewFormValues = z.infer<typeof reviewFormSchema>;

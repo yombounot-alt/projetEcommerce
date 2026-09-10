@@ -3,12 +3,12 @@ import { Link } from "react-router-dom";
 import { PriceDisplay } from "@/components/common/PriceDisplay";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes.constants";
-import { useCartStore } from "@/store/cartStore";
+import { useCart } from "@/features/cart/api/useCart";
 import type { CartItem } from "@/types/order.types";
+import { formatPrice } from "@/utils/format";
 
 export function CartLineItem({ item }: { item: CartItem }) {
-  const updateQuantity = useCartStore((state) => state.updateQuantity);
-  const removeItem = useCartStore((state) => state.removeItem);
+  const { updateQuantity, removeItem } = useCart();
 
   return (
     <div className="flex gap-4 py-4">
@@ -58,7 +58,7 @@ export function CartLineItem({ item }: { item: CartItem }) {
             </Button>
           </div>
           <p className="text-sm font-semibold text-foreground">
-            {(item.price * item.quantity).toFixed(2)} €
+            {formatPrice(item.price * item.quantity)}
           </p>
         </div>
       </div>

@@ -2,6 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { env } from "@/app/config/env";
 import { Seo } from "@/components/common/Seo";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -47,7 +48,9 @@ export default function LoginPage() {
           </Link>
         </p>
         <p className="rounded-md bg-secondary px-3 py-2 text-xs text-secondary-foreground">
-          Démo : admin@lumera.example · seller@lumera.example · customer@lumera.example (mot de passe libre, 8+ caractères)
+          {env.useMocks
+            ? "Démo : admin@lumera.example · seller@lumera.example · customer@lumera.example (mot de passe libre, 8+ caractères)"
+            : "Démo : admin@lumera.demo · seller@lumera.demo · customer@lumera.demo (mot de passe : Demo1234)"}
         </p>
       </div>
 

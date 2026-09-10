@@ -3,8 +3,8 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { SearchBar } from "@/components/common/SearchBar";
 import { ROUTES } from "@/constants/routes.constants";
-import { selectCartCount, useCartStore } from "@/store/cartStore";
-import { useWishlistStore } from "@/store/wishlistStore";
+import { useCart } from "@/features/cart/api/useCart";
+import { useWishlist } from "@/features/wishlist/api/useWishlist";
 import { CategoriesMenu } from "./CategoriesMenu";
 import { IconLinkButton } from "./IconLinkButton";
 import { Logo } from "./Logo";
@@ -19,8 +19,8 @@ const NAV_LINKS = [
 export function Navbar() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
-  const cartCount = useCartStore(selectCartCount);
-  const wishlistCount = useWishlistStore((state) => state.items.length);
+  const { itemCount: cartCount } = useCart();
+  const wishlistCount = useWishlist().items.length;
 
   function handleSearch(value: string) {
     setSearch(value);

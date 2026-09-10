@@ -1,6 +1,6 @@
 import { PencilIcon, PlusIcon } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
+import { Link } from "react-router-dom";
 import { DataTable, type DataTableColumn } from "@/components/common/DataTable";
 import { PageHeader } from "@/components/common/PageHeader";
 import { PaginationControl } from "@/components/common/PaginationControl";
@@ -8,6 +8,7 @@ import { SearchBar } from "@/components/common/SearchBar";
 import { Seo } from "@/components/common/Seo";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ROUTES } from "@/constants/routes.constants";
 import { useProductsQuery } from "@/features/products/api/useProductsQuery";
 import { formatPrice } from "@/utils/format";
 import type { ProductListItem } from "@/types/product.types";
@@ -39,8 +40,10 @@ export default function SellerProductsPage() {
       header: "",
       className: "text-right",
       render: (product) => (
-        <Button variant="ghost" size="icon" className="size-8" onClick={() => toast.info(`Édition de ${product.name} (démo)`)}>
-          <PencilIcon className="size-4" />
+        <Button asChild variant="ghost" size="icon" className="size-8">
+          <Link to={ROUTES.seller.productEdit(product.id)} aria-label="Modifier">
+            <PencilIcon className="size-4" />
+          </Link>
         </Button>
       ),
     },
@@ -52,7 +55,7 @@ export default function SellerProductsPage() {
       <PageHeader
         title="Mes produits"
         description="Gérez les produits que vous proposez à la vente."
-        actions={<Button onClick={() => toast.info("Ajout de produit (démo)")}><PlusIcon /> Ajouter un produit</Button>}
+        actions={<Button asChild><Link to={ROUTES.seller.productNew}><PlusIcon /> Ajouter un produit</Link></Button>}
       />
 
       <SearchBar value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Rechercher…" className="max-w-sm" />

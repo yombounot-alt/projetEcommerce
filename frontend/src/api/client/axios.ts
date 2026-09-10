@@ -26,18 +26,29 @@ export const httpClient = axios.create({
 
 type AccessTokenGetter = () => string | null;
 type UnauthorizedHandler = () => void;
+type RefreshHandler = () => Promise<string | null>;
 
 let getAccessToken: AccessTokenGetter = () => null;
 let onUnauthorized: UnauthorizedHandler = () => {};
+let refreshAccessToken: RefreshHandler = async () => null;
 
 /** Permet à authStore d'injecter ses accesseurs sans créer de dépendance circulaire au niveau module. */
 export function registerAuthHandlers(handlers: {
   getAccessToken: AccessTokenGetter;
   onUnauthorized: UnauthorizedHandler;
+  refreshAccessToken: RefreshHandler;
 }) {
   getAccessToken = handlers.getAccessToken;
   onUnauthorized = handlers.onUnauthorized;
+  refreshAccessToken = handlers.refreshAccessToken;
 }
+
+// Endpoints qui ne doivent jamais déclencher une tentative de refresh sur 401
+// (login/register échouent légitimement avec 401/409, et /auth/refresh est la cible du refresh
+// lui-même — le laisser passer par ce chemin créerait une boucle infinie).
+const NO_REFRESH_PATHS = ["/auth/login", "/auth/register", "/auth/refresh"];
+
+let pendingRefresh: Promise<string | null> | null = null;
 
 httpClient.interceptors.request.use((config) => {
   const token = getAccessToken();
@@ -49,10 +60,24 @@ httpClient.interceptors.request.use((config) => {
 
 httpClient.interceptors.response.use(
   (response) => response,
-  (error: AxiosError<Partial<ApiErrorPayload>>) => {
+  async (error: AxiosError<Partial<ApiErrorPayload>>) => {
     const status = error.response?.status ?? 0;
+    const originalRequest = error.config as (typeof error.config & { _retry?: boolean }) | undefined;
+    const url = originalRequest?.url ?? "";
+    const isRefreshable = status === 401 && originalRequest && !originalRequest._retry && !NO_REFRESH_PATHS.some((p) => url.includes(p));
 
-    if (status === 401) {
+    if (isRefreshable) {
+      originalRequest._retry = true;
+      pendingRefresh ??= refreshAccessToken().finally(() => {
+        pendingRefresh = null;
+      });
+      const newToken = await pendingRefresh;
+      if (newToken) {
+        originalRequest.headers.set("Authorization", `Bearer ${newToken}`);
+        return httpClient(originalRequest);
+      }
+      onUnauthorized();
+    } else if (status === 401) {
       onUnauthorized();
     }
 

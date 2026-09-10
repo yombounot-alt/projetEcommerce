@@ -16,7 +16,7 @@ export function AuthLayout() {
 
       <div className="relative hidden overflow-hidden bg-primary lg:block">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,color-mix(in_oklch,var(--accent)_35%,transparent),transparent_55%)]" />
-        <div className="relative flex h-full flex-col justify-end p-12 text-primary-foreground">
+        <div className="relative flex h-full flex-col items-center justify-center p-12 text-center text-primary-foreground">
           <blockquote className="max-w-md space-y-4">
             <p className="font-heading text-2xl leading-snug">
               « Une expérience d'achat fluide, élégante, et pensée pour durer. »

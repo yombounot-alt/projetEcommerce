@@ -11,22 +11,22 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ROUTES } from "@/constants/routes.constants";
+import { useCart } from "@/features/cart/api/useCart";
 import { useProductQuery } from "@/features/products/api/useProductQuery";
 import { useRelatedProductsQuery } from "@/features/products/api/useRelatedProductsQuery";
 import { ProductGallery } from "@/features/products/components/ProductGallery";
 import { ProductGrid } from "@/features/products/components/ProductGrid";
 import { ProductReviews } from "@/features/products/components/ProductReviews";
-import { useCartStore } from "@/store/cartStore";
-import { useWishlistStore } from "@/store/wishlistStore";
+import { useWishlist } from "@/features/wishlist/api/useWishlist";
 
 export default function ProductDetailsPage() {
   const { slug } = useParams<{ slug: string }>();
   const { data: product, isLoading } = useProductQuery(slug);
   const { data: relatedProducts, isLoading: relatedLoading } = useRelatedProductsQuery(product);
 
-  const addItem = useCartStore((state) => state.addItem);
-  const toggleWishlist = useWishlistStore((state) => state.toggle);
-  const isWishlisted = useWishlistStore((state) => state.has(product?.id ?? ""));
+  const { addItem } = useCart();
+  const { toggle: toggleWishlist, has: hasWishlist } = useWishlist();
+  const isWishlisted = hasWishlist(product?.id ?? "");
 
   const [quantity, setQuantity] = useState(1);
 

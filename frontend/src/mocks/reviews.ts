@@ -51,6 +51,7 @@ function generateReviews(): ProductReview[] {
       reviews.push({
         id: `review-${product.id}-${i}`,
         productId: product.id,
+        authorId: `reviewer-${product.id}-${i}`,
         authorName: pick(reviewers),
         authorAvatarUrl: `https://i.pravatar.cc/100?u=${product.id}-${i}`,
         rating: randInt(3, 5),

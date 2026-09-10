@@ -7,14 +7,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes.constants";
 import { cn } from "@/lib/utils";
-import { useCartStore } from "@/store/cartStore";
-import { useWishlistStore } from "@/store/wishlistStore";
+import { useCart } from "@/features/cart/api/useCart";
+import { useWishlist } from "@/features/wishlist/api/useWishlist";
 import type { ProductListItem } from "@/types/product.types";
 
 export function ProductCard({ product }: { product: ProductListItem }) {
-  const addItem = useCartStore((state) => state.addItem);
-  const toggleWishlist = useWishlistStore((state) => state.toggle);
-  const isWishlisted = useWishlistStore((state) => state.has(product.id));
+  const { addItem } = useCart();
+  const { toggle: toggleWishlist, has: hasWishlist } = useWishlist();
+  const isWishlisted = hasWishlist(product.id);
   const isOutOfStock = product.stock <= 0;
 
   function handleAddToCart(event: MouseEvent) {

@@ -1,25 +1,51 @@
 import { httpClient } from "@/api/client/axios";
 import { env } from "@/app/config/env";
-import { PAGE_SIZE_DEFAULT } from "@/constants/app.constants";
+import {
+  EXPRESS_SHIPPING_COST,
+  FREE_SHIPPING_THRESHOLD,
+  PAGE_SIZE_DEFAULT,
+  STANDARD_SHIPPING_COST,
+} from "@/constants/app.constants";
 import { mockDelay } from "@/lib/mock-delay";
 import { getOrderById, getOrderByNumber, getOrdersByCustomer, mockOrders } from "@/mocks/orders";
+import { mockProducts } from "@/mocks/products";
+import { useAuthStore } from "@/store/authStore";
 import type { PaginatedResponse } from "@/types/common.types";
-import type { CartItem, Coupon, Order, OrderStatus } from "@/types/order.types";
-import type { Address } from "@/types/user.types";
+import type { Coupon, Order, OrderStatus } from "@/types/order.types";
+import { formatPrice } from "@/utils/format";
 
+/** Sous-ensemble d'Address attendu par le backend pour une commande (voir orderAddressSchema) — pas d'id/isDefault, ce sont des concepts propres au carnet d'adresses du client. */
+export interface CreateOrderAddress {
+  label?: string;
+  fullName: string;
+  line1: string;
+  line2?: string;
+  city: string;
+  state?: string;
+  postalCode: string;
+  country: string;
+  phone: string;
+}
+
+/**
+ * Payload de checkout tel qu'attendu par POST /orders : le serveur recalcule toujours
+ * prix, stock et totaux à partir de MongoDB (jamais depuis le client), donc on ne lui
+ * envoie que l'identité produit/quantité — pas de prix, nom ou image côté client.
+ */
 export interface CreateOrderPayload {
-  customerId: string;
-  customerName: string;
-  customerEmail: string;
-  items: CartItem[];
-  shippingAddress: Address;
-  billingAddress: Address;
-  shippingMethod: string;
-  shippingCost: number;
-  discount: number;
+  items: { productId: string; quantity: number }[];
+  shippingAddress: CreateOrderAddress;
+  billingAddress?: CreateOrderAddress;
+  shippingMethod: "standard" | "express";
   couponCode?: string;
   paymentMethod: Order["payment"]["method"];
+  notes?: string;
 }
+
+const KNOWN_COUPONS: { code: string; type: "percentage" | "fixed"; value: number; minSubtotal?: number }[] = [
+  { code: "WELCOME10", type: "percentage", value: 10 },
+  { code: "FREESHIP", type: "fixed", value: STANDARD_SHIPPING_COST },
+];
 
 export interface OrderListFilters {
   status?: OrderStatus;
@@ -96,41 +122,72 @@ export const orderService = {
 
   async create(payload: CreateOrderPayload): Promise<Order> {
     if (env.useMocks) {
-      const subtotal = payload.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+      // Miroir du comportement serveur réel : prix/nom/image sont toujours relus depuis le
+      // catalogue (mockProducts), jamais acceptés depuis le payload — seuls productId/quantity
+      // y figurent, exactement comme le contrat de POST /orders côté backend.
+      const user = useAuthStore.getState().user;
+      const items = payload.items.map((line, index) => {
+        const product = mockProducts.find((p) => p.id === line.productId);
+        const unitPrice = product?.price ?? 0;
+        return {
+          id: `item-${Date.now()}-${index}`,
+          productId: line.productId,
+          productName: product?.name ?? "Produit",
+          productImage: product?.images[0] ?? "",
+          sku: product?.sku ?? line.productId,
+          unitPrice,
+          quantity: line.quantity,
+          subtotal: Number((unitPrice * line.quantity).toFixed(2)),
+        };
+      });
+
+      const subtotal = Number(items.reduce((sum, item) => sum + item.subtotal, 0).toFixed(2));
+      const shippingCost =
+        subtotal >= FREE_SHIPPING_THRESHOLD
+          ? 0
+          : payload.shippingMethod === "express"
+            ? EXPRESS_SHIPPING_COST
+            : STANDARD_SHIPPING_COST;
+      const coupon = payload.couponCode
+        ? KNOWN_COUPONS.find((c) => c.code === payload.couponCode)
+        : undefined;
+      const discount = coupon
+        ? Number(
+            Math.min(
+              coupon.type === "percentage" ? subtotal * (coupon.value / 100) : coupon.value,
+              subtotal,
+            ).toFixed(2),
+          )
+        : 0;
+      const total = Number((subtotal + shippingCost - discount).toFixed(2));
+      const shippingAddress = { id: "temp", isDefault: false, label: "Shipping", ...payload.shippingAddress };
+      const billingAddress = payload.billingAddress
+        ? { id: "temp-billing", isDefault: false, label: "Billing", ...payload.billingAddress }
+        : { ...shippingAddress, id: "temp-billing" };
+
       const order: Order = {
         id: `order-${Date.now()}`,
         orderNumber: `LUM-${Math.floor(100000 + Math.random() * 899999)}`,
-        customerId: payload.customerId,
-        customerName: payload.customerName,
-        customerEmail: payload.customerEmail,
-        items: payload.items.map((item, index) => ({
-          id: `item-${Date.now()}-${index}`,
-          productId: item.productId,
-          productName: item.name,
-          productImage: item.image,
-          sku: item.productId,
-          unitPrice: item.price,
-          quantity: item.quantity,
-          subtotal: Number((item.price * item.quantity).toFixed(2)),
-        })),
+        customerId: user?.id ?? "guest",
+        customerName: user ? `${user.firstName} ${user.lastName}` : "Invité",
+        customerEmail: user?.email ?? "",
+        items,
         status: "pending",
-        shippingAddress: payload.shippingAddress,
-        billingAddress: payload.billingAddress,
+        shippingAddress,
+        billingAddress,
         shippingMethod: payload.shippingMethod,
-        shippingCost: payload.shippingCost,
-        discount: payload.discount,
-        couponCode: payload.couponCode,
-        subtotal: Number(subtotal.toFixed(2)),
-        total: Number((subtotal + payload.shippingCost - payload.discount).toFixed(2)),
+        shippingCost,
+        discount,
+        couponCode: coupon?.code,
+        subtotal,
+        total,
         currency: "GNF",
         payment: {
           id: `pay-${Date.now()}`,
           method: payload.paymentMethod,
-          status: "captured",
-          amount: Number((subtotal + payload.shippingCost - payload.discount).toFixed(2)),
+          status: "pending",
+          amount: total,
           currency: "GNF",
-          processedAt: new Date().toISOString(),
-          providerReference: `ref_${Math.random().toString(36).slice(2, 12)}`,
         },
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -157,16 +214,12 @@ export const orderService = {
 
   async applyCoupon(code: string, subtotal: number): Promise<Coupon> {
     if (env.useMocks) {
-      const knownCoupons: Coupon[] = [
-        { code: "WELCOME10", type: "percentage", value: 10 },
-        { code: "FREESHIP", type: "fixed", value: 4.99 },
-      ];
-      const coupon = knownCoupons.find((c) => c.code === code.toUpperCase());
+      const coupon = KNOWN_COUPONS.find((c) => c.code === code.toUpperCase());
       if (!coupon) {
         throw new Error("Code promo invalide ou expiré.");
       }
       if (coupon.minSubtotal && subtotal < coupon.minSubtotal) {
-        throw new Error(`Ce code nécessite un panier minimum de ${coupon.minSubtotal} €.`);
+        throw new Error(`Ce code nécessite un panier minimum de ${formatPrice(coupon.minSubtotal)}.`);
       }
       return mockDelay(coupon, 300);
     }

@@ -11,6 +11,7 @@ export const queryKeys = {
     all: ["products"] as const,
     list: (filters: ProductFilters) => [...queryKeys.products.all, "list", filters] as const,
     detail: (slug: string) => [...queryKeys.products.all, "detail", slug] as const,
+    byId: (id: string) => [...queryKeys.products.all, "byId", id] as const,
     related: (productId: string) => [...queryKeys.products.all, "related", productId] as const,
     reviews: (productId: string) => [...queryKeys.products.all, "reviews", productId] as const,
     featured: () => [...queryKeys.products.all, "featured"] as const,
@@ -31,8 +32,25 @@ export const queryKeys = {
     all: ["users"] as const,
     list: (filters: UserListFilters) => [...queryKeys.users.all, "list", filters] as const,
     detail: (id: string) => [...queryKeys.users.all, "detail", id] as const,
+    sellerCustomers: (filters: Pick<UserListFilters, "search" | "page" | "pageSize">) =>
+      [...queryKeys.users.all, "seller-customers", filters] as const,
   },
   dashboard: {
     overview: ["dashboard", "overview"] as const,
+  },
+  cart: {
+    all: ["cart"] as const,
+  },
+  wishlist: {
+    all: ["wishlist"] as const,
+  },
+  notifications: {
+    all: ["notifications"] as const,
+  },
+  addresses: {
+    all: ["addresses"] as const,
+  },
+  settings: {
+    all: ["settings"] as const,
   },
 } as const;

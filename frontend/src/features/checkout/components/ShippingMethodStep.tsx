@@ -11,7 +11,7 @@ import { formatPrice } from "@/utils/format";
 interface ShippingMethodStepProps {
   subtotal: number;
   defaultValues: ShippingMethodValues;
-  onNext: (values: ShippingMethodValues, cost: number, label: string) => void;
+  onNext: (values: ShippingMethodValues, cost: number) => void;
   onBack: () => void;
 }
 
@@ -30,8 +30,7 @@ export function ShippingMethodStep({ subtotal, defaultValues, onNext, onBack }: 
       description: "1 à 2 jours ouvrés",
       cost: EXPRESS_SHIPPING_COST,
     },
-    { id: "pickup", label: "Point relais", description: "2 à 4 jours ouvrés", cost: 2.99 },
-  ];
+  ] as const;
 
   const form = useForm<ShippingMethodValues>({
     resolver: zodResolver(shippingMethodSchema),
@@ -40,7 +39,7 @@ export function ShippingMethodStep({ subtotal, defaultValues, onNext, onBack }: 
 
   function handleSubmit(values: ShippingMethodValues) {
     const method = methods.find((m) => m.id === values.methodId);
-    onNext(values, method?.cost ?? 0, method?.label ?? "Livraison standard");
+    onNext(values, method?.cost ?? 0);
   }
 
   return (

@@ -11,6 +11,14 @@ export function useUsersQuery(filters: UserListFilters) {
   });
 }
 
+export function useSellerCustomersQuery(filters: Pick<UserListFilters, "search" | "page" | "pageSize">) {
+  return useQuery({
+    queryKey: queryKeys.users.sellerCustomers(filters),
+    queryFn: () => userService.listSellerCustomers(filters),
+    placeholderData: keepPreviousData,
+  });
+}
+
 export function useUpdateUserRoleMutation() {
   const queryClient = useQueryClient();
   return useMutation({

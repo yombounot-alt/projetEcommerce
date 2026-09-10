@@ -15,6 +15,8 @@ export const AUTH_TOKEN_STORAGE_KEY = "lumera.auth.access_token";
 export const CART_STORAGE_KEY = "lumera.cart";
 export const WISHLIST_STORAGE_KEY = "lumera.wishlist";
 
-export const FREE_SHIPPING_THRESHOLD = 75;
-export const STANDARD_SHIPPING_COST = 4.99;
-export const EXPRESS_SHIPPING_COST = 9.99;
+// Mirrors backend/src/constants/shipping.ts — amounts are in GNF, scaled to the real
+// catalogue (60 000 - 2 500 000 GNF per product), not the old placeholder USD-style decimals.
+export const FREE_SHIPPING_THRESHOLD = 500_000;
+export const STANDARD_SHIPPING_COST = 20_000;
+export const EXPRESS_SHIPPING_COST = 40_000;

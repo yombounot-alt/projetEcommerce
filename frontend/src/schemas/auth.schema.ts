@@ -10,8 +10,8 @@ export type LoginFormValues = z.infer<typeof loginSchema>;
 
 export const registerSchema = z
   .object({
-    firstName: z.string().trim().min(2, "Prénom trop court").max(50),
-    lastName: z.string().trim().min(2, "Nom trop court").max(50),
+    firstName: z.string().trim().min(2, "Prénom trop court").max(50, "Prénom trop long (50 caractères maximum)"),
+    lastName: z.string().trim().min(2, "Nom trop court").max(50, "Nom trop long (50 caractères maximum)"),
     email: z.string().trim().min(1, "L'email est requis").email("Email invalide"),
     password: z
       .string()
@@ -36,7 +36,7 @@ export type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
 
 export const resetPasswordSchema = z
   .object({
-    token: z.string().min(1),
+    token: z.string().min(1, "Jeton requis"),
     password: z
       .string()
       .min(8, "8 caractères minimum")
@@ -50,3 +50,20 @@ export const resetPasswordSchema = z
   });
 
 export type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
+
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Mot de passe actuel requis"),
+    newPassword: z
+      .string()
+      .min(8, "8 caractères minimum")
+      .regex(/[A-Z]/, "Une majuscule minimum")
+      .regex(/[0-9]/, "Un chiffre minimum"),
+    confirmNewPassword: z.string(),
+  })
+  .refine((data) => data.newPassword === data.confirmNewPassword, {
+    message: "Les mots de passe ne correspondent pas",
+    path: ["confirmNewPassword"],
+  });
+
+export type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;

@@ -9,27 +9,65 @@ import { PageHeader } from "@/components/common/PageHeader";
 import { Seo } from "@/components/common/Seo";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
+  Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useCategoriesQuery } from "@/features/categories/api/useCategoriesQuery";
+import {
+  useCreateCategoryMutation, useDeleteCategoryMutation, useUpdateCategoryMutation,
+} from "@/features/categories/api/useCategoryMutations";
 import { categoryFormSchema, type CategoryFormValues } from "@/schemas/product.schema";
 import type { Category } from "@/types/product.types";
 
 export default function AdminCategoriesPage() {
   const { data: categories, isLoading } = useCategoriesQuery();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const createCategory = useCreateCategoryMutation();
+  const updateCategory = useUpdateCategoryMutation();
+  const deleteCategory = useDeleteCategoryMutation();
+  const isSubmitting = createCategory.isPending || updateCategory.isPending;
 
   const form = useForm<CategoryFormValues>({
     resolver: zodResolver(categoryFormSchema),
     defaultValues: { name: "", slug: "", description: "" },
   });
 
-  function onSubmit() {
-    toast.success("Catégorie enregistrée avec succès.");
-    setIsDialogOpen(false);
-    form.reset();
+  function openCreateDialog() {
+    setEditingCategory(null);
+    form.reset({ name: "", slug: "", description: "" });
+    setIsDialogOpen(true);
+  }
+
+  function openEditDialog(category: Category) {
+    setEditingCategory(category);
+    form.reset({ name: category.name, slug: category.slug, description: category.description ?? "" });
+    setIsDialogOpen(true);
+  }
+
+  function onSubmit(values: CategoryFormValues) {
+    const onSuccess = () => {
+      toast.success(editingCategory ? "Catégorie mise à jour avec succès." : "Catégorie créée avec succès.");
+      setIsDialogOpen(false);
+      form.reset();
+    };
+    const onError = () => {
+      toast.error(editingCategory ? "Impossible de mettre à jour cette catégorie." : "Impossible de créer cette catégorie.");
+    };
+
+    if (editingCategory) {
+      updateCategory.mutate({ id: editingCategory.id, changes: values }, { onSuccess, onError });
+    } else {
+      createCategory.mutate(values, { onSuccess, onError });
+    }
+  }
+
+  function handleDelete(category: Category) {
+    deleteCategory.mutate(category.id, {
+      onSuccess: () => toast.success("Catégorie supprimée."),
+      onError: () => toast.error("Impossible de supprimer cette catégorie."),
+    });
   }
 
   const columns: DataTableColumn<Category>[] = [
@@ -42,7 +80,7 @@ export default function AdminCategoriesPage() {
       className: "text-right",
       render: (category) => (
         <div className="flex justify-end gap-1">
-          <Button variant="ghost" size="icon" className="size-8" aria-label="Modifier">
+          <Button variant="ghost" size="icon" className="size-8" aria-label="Modifier" onClick={() => openEditDialog(category)}>
             <PencilIcon className="size-4" />
           </Button>
           <ConfirmDialog
@@ -54,7 +92,7 @@ export default function AdminCategoriesPage() {
             title="Supprimer cette catégorie ?"
             description={`« ${category.name} » sera définitivement supprimée.`}
             destructive
-            onConfirm={() => toast.success("Catégorie supprimée.")}
+            onConfirm={() => handleDelete(category)}
           />
         </div>
       ),
@@ -67,31 +105,30 @@ export default function AdminCategoriesPage() {
       <PageHeader
         title="Catégories"
         description="Organisez la structure de votre catalogue produits."
-        actions={
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button><PlusIcon /> Nouvelle catégorie</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader><DialogTitle>Nouvelle catégorie</DialogTitle></DialogHeader>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
-                  <FormField control={form.control} name="name" render={({ field }) => (
-                    <FormItem><FormLabel>Nom</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                  )} />
-                  <FormField control={form.control} name="slug" render={({ field }) => (
-                    <FormItem><FormLabel>Slug</FormLabel><FormControl><Input placeholder="ex: electronique" {...field} /></FormControl><FormMessage /></FormItem>
-                  )} />
-                  <FormField control={form.control} name="description" render={({ field }) => (
-                    <FormItem><FormLabel>Description</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                  )} />
-                  <DialogFooter><Button type="submit">Enregistrer</Button></DialogFooter>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
-        }
+        actions={<Button onClick={openCreateDialog}><PlusIcon /> Nouvelle catégorie</Button>}
       />
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>{editingCategory ? "Modifier la catégorie" : "Nouvelle catégorie"}</DialogTitle></DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+              <FormField control={form.control} name="name" render={({ field }) => (
+                <FormItem><FormLabel>Nom</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
+              <FormField control={form.control} name="slug" render={({ field }) => (
+                <FormItem><FormLabel>Slug</FormLabel><FormControl><Input placeholder="ex: electronique" {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
+              <FormField control={form.control} name="description" render={({ field }) => (
+                <FormItem><FormLabel>Description</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
+              <DialogFooter>
+                <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Enregistrement…" : "Enregistrer"}</Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
 
       <DataTable columns={columns} data={categories ?? []} rowKey={(c) => c.id} isLoading={isLoading} />
     </div>

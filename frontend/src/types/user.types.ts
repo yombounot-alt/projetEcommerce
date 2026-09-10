@@ -12,6 +12,7 @@ export interface User {
   avatarUrl?: string;
   role: Role;
   status: UserStatus;
+  isVerified: boolean;
   createdAt: ISODateString;
   lastActiveAt?: ISODateString;
 }

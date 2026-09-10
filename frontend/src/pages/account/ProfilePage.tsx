@@ -10,12 +10,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { ROUTES } from "@/constants/routes.constants";
+import { useUpdateProfileMutation } from "@/features/auth/api/useAuthMutations";
+import { ChangePasswordForm } from "@/features/auth/components/ChangePasswordForm";
+import { EmailVerificationBanner } from "@/features/auth/components/EmailVerificationBanner";
 import { profileFormSchema, type ProfileFormValues } from "@/schemas/profile.schema";
 import { useAuthStore } from "@/store/authStore";
 import { getInitials } from "@/utils/format";
 
 export default function ProfilePage() {
   const user = useAuthStore((state) => state.user);
+  const updateProfile = useUpdateProfileMutation();
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -27,8 +31,11 @@ export default function ProfilePage() {
     },
   });
 
-  function onSubmit() {
-    toast.success("Votre profil a été mis à jour.");
+  function onSubmit(values: ProfileFormValues) {
+    updateProfile.mutate(values, {
+      onSuccess: () => toast.success("Votre profil a été mis à jour."),
+      onError: () => toast.error("Impossible de mettre à jour votre profil."),
+    });
   }
 
   if (!user) return null;
@@ -37,6 +44,8 @@ export default function ProfilePage() {
     <div className="container-page py-10">
       <Seo title="Mon profil" canonicalPath={ROUTES.profile} noIndex />
       <PageHeader title="Mon profil" description="Gérez vos informations personnelles." />
+
+      {!user.isVerified && <div className="mb-6"><EmailVerificationBanner /></div>}
 
       <div className="grid gap-6 lg:grid-cols-[18rem_1fr]">
         <Card>
@@ -53,6 +62,7 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
 
+        <div className="space-y-6">
         <Card>
           <CardContent className="p-6">
             <Form {...form}>
@@ -103,13 +113,24 @@ export default function ProfilePage() {
                     </FormItem>
                   )}
                 />
-                <Button type="submit" disabled={form.formState.isSubmitting}>
-                  Enregistrer les modifications
+                <Button type="submit" disabled={updateProfile.isPending}>
+                  {updateProfile.isPending ? "Enregistrement…" : "Enregistrer les modifications"}
                 </Button>
               </form>
             </Form>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardContent className="space-y-4 p-6">
+            <div>
+              <p className="text-sm font-medium text-foreground">Sécurité</p>
+              <p className="text-xs text-muted-foreground">Changez votre mot de passe régulièrement pour protéger votre compte.</p>
+            </div>
+            <ChangePasswordForm />
+          </CardContent>
+        </Card>
+        </div>
       </div>
     </div>
   );

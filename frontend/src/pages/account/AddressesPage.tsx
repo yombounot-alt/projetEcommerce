@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/common/EmptyState";
+import { LoadingState } from "@/components/common/LoadingState";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Seo } from "@/components/common/Seo";
 import { Badge } from "@/components/ui/badge";
@@ -16,11 +17,14 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { ROUTES } from "@/constants/routes.constants";
+import { useAddAddressMutation, useDeleteAddressMutation } from "@/features/addresses/api/useAddressMutations";
+import { useAddressesQuery } from "@/features/addresses/api/useAddressesQuery";
 import { addressFormSchema, type AddressFormValues } from "@/schemas/profile.schema";
-import type { Address } from "@/types/user.types";
 
 export default function AddressesPage() {
-  const [addresses, setAddresses] = useState<Address[]>([]);
+  const { data: addresses, isLoading } = useAddressesQuery();
+  const addAddress = useAddAddressMutation();
+  const deleteAddress = useDeleteAddressMutation();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const form = useForm<AddressFormValues>({
@@ -31,16 +35,21 @@ export default function AddressesPage() {
   });
 
   function onSubmit(values: AddressFormValues) {
-    const newAddress: Address = { id: `addr-${Date.now()}`, ...values };
-    setAddresses((prev) => (values.isDefault ? [...prev.map((a) => ({ ...a, isDefault: false })), newAddress] : [...prev, newAddress]));
-    toast.success("Adresse ajoutée avec succès.");
-    setIsDialogOpen(false);
-    form.reset();
+    addAddress.mutate(values, {
+      onSuccess: () => {
+        toast.success("Adresse ajoutée avec succès.");
+        setIsDialogOpen(false);
+        form.reset();
+      },
+      onError: () => toast.error("Impossible d'ajouter cette adresse."),
+    });
   }
 
   function handleDelete(id: string) {
-    setAddresses((prev) => prev.filter((a) => a.id !== id));
-    toast.success("Adresse supprimée.");
+    deleteAddress.mutate(id, {
+      onSuccess: () => toast.success("Adresse supprimée."),
+      onError: () => toast.error("Impossible de supprimer cette adresse."),
+    });
   }
 
   return (
@@ -84,7 +93,9 @@ export default function AddressesPage() {
                     <FormItem><FormLabel>Téléphone</FormLabel><FormControl><Input type="tel" {...field} /></FormControl><FormMessage /></FormItem>
                   )} />
                   <DialogFooter>
-                    <Button type="submit">Enregistrer</Button>
+                    <Button type="submit" disabled={addAddress.isPending}>
+                      {addAddress.isPending ? "Enregistrement…" : "Enregistrer"}
+                    </Button>
                   </DialogFooter>
                 </form>
               </Form>
@@ -93,7 +104,9 @@ export default function AddressesPage() {
         }
       />
 
-      {addresses.length === 0 ? (
+      {isLoading ? (
+        <LoadingState className="min-h-[30vh]" label="Chargement de vos adresses…" />
+      ) : !addresses || addresses.length === 0 ? (
         <EmptyState icon={MapPinIcon} title="Aucune adresse enregistrée" description="Ajoutez une adresse pour accélérer vos prochaines commandes." />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">

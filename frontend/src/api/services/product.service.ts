@@ -4,7 +4,8 @@ import { PAGE_SIZE_DEFAULT } from "@/constants/app.constants";
 import { mockDelay } from "@/lib/mock-delay";
 import { mockCategories } from "@/mocks/categories";
 import { getRelatedProducts, mockProducts } from "@/mocks/products";
-import { getReviewsByProduct } from "@/mocks/reviews";
+import { getReviewsByProduct, mockReviews } from "@/mocks/reviews";
+import { useAuthStore } from "@/store/authStore";
 import type { PaginatedResponse } from "@/types/common.types";
 import type { Category, Product, ProductFilters, ProductListItem, ProductReview } from "@/types/product.types";
 
@@ -65,12 +66,44 @@ function applyFilters(filters: ProductFilters): Product[] {
   return results;
 }
 
-function toListItem(product: Product): ProductListItem {
+export function toListItem(product: Product): ProductListItem {
   const {
     id, sku, name, slug, price, compareAtPrice, currency, images,
     category, stock, status, rating, reviewCount, isFeatured, isNew,
   } = product;
   return { id, sku, name, slug, price, compareAtPrice, currency, images, category, stock, status, rating, reviewCount, isFeatured, isNew };
+}
+
+function slugifyName(name: string): string {
+  return name
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+/** Champs qu'un admin/vendeur peut soumettre pour créer un produit (voir createProductSchema). */
+export interface ProductInput {
+  name: string;
+  description: string;
+  shortDescription: string;
+  sku: string;
+  price: number;
+  compareAtPrice?: number;
+  categoryId: string;
+  brandId?: string;
+  stock: number;
+  weightKg?: number;
+  images: string[];
+  status: Product["status"];
+}
+
+export interface ReviewInput {
+  rating: number;
+  title: string;
+  comment: string;
 }
 
 export const productService = {
@@ -122,6 +155,40 @@ export const productService = {
     return data;
   },
 
+  async createReview(productId: string, input: ReviewInput): Promise<ProductReview> {
+    if (env.useMocks) {
+      const user = useAuthStore.getState().user;
+      if (!user) throw new Error("Vous devez être connecté pour laisser un avis.");
+      if (mockReviews.some((r) => r.productId === productId && r.authorId === user.id)) {
+        throw new Error("Vous avez déjà laissé un avis sur ce produit.");
+      }
+      const review: ProductReview = {
+        id: `review-${Date.now()}`,
+        productId,
+        authorId: user.id,
+        authorName: `${user.firstName} ${user.lastName}`,
+        authorAvatarUrl: user.avatarUrl,
+        rating: input.rating,
+        title: input.title,
+        comment: input.comment,
+        createdAt: new Date().toISOString(),
+        verifiedPurchase: false,
+      };
+      mockReviews.unshift(review);
+      const product = mockProducts.find((p) => p.id === productId);
+      if (product) {
+        const productReviews = mockReviews.filter((r) => r.productId === productId);
+        product.reviewCount = productReviews.length;
+        product.rating = Number(
+          (productReviews.reduce((sum, r) => sum + r.rating, 0) / productReviews.length).toFixed(2),
+        );
+      }
+      return mockDelay(review, 300);
+    }
+    const { data } = await httpClient.post<ProductReview>(`/products/${productId}/reviews`, input);
+    return data;
+  },
+
   async getFeatured(limit = 8): Promise<ProductListItem[]> {
     if (env.useMocks) {
       const featured = mockProducts.filter((p) => p.isFeatured && p.status === "published").slice(0, limit);
@@ -142,7 +209,86 @@ export const productService = {
     const { data } = await httpClient.get<ProductListItem[]>("/products/new", { params: { limit } });
     return data;
   },
+
+  async getById(id: string): Promise<Product | null> {
+    if (env.useMocks) {
+      return mockDelay(mockProducts.find((p) => p.id === id) ?? null, 200);
+    }
+    const { data } = await httpClient.get<Product>(`/products/${id}`);
+    return data;
+  },
+
+  async create(input: ProductInput): Promise<Product> {
+    if (env.useMocks) {
+      const category = mockCategories.find((c) => c.id === input.categoryId);
+      const now = new Date().toISOString();
+      const product: Product = {
+        id: `product-${Date.now()}`,
+        sku: input.sku,
+        name: input.name,
+        slug: slugifyName(input.name),
+        description: input.description,
+        shortDescription: input.shortDescription,
+        price: input.price,
+        compareAtPrice: input.compareAtPrice,
+        currency: "GNF",
+        images: input.images,
+        categoryId: input.categoryId,
+        category: category ? { id: category.id, name: category.name, slug: category.slug } : { id: "", name: "", slug: "" },
+        stock: input.stock,
+        weightKg: input.weightKg,
+        status: input.status,
+        rating: 0,
+        reviewCount: 0,
+        tags: [],
+        isFeatured: false,
+        isNew: true,
+        createdAt: now,
+        updatedAt: now,
+      };
+      mockProducts.unshift(product);
+      return mockDelay(product, 400);
+    }
+    const { data } = await httpClient.post<Product>("/products", input);
+    return data;
+  },
+
+  /** Le SKU n'est jamais modifiable après création (voir updateProductSchema côté backend, qui n'accepte pas ce champ). */
+  async update(id: string, changes: Partial<Omit<ProductInput, "sku">>): Promise<Product> {
+    if (env.useMocks) {
+      const product = mockProducts.find((p) => p.id === id);
+      if (!product) throw new Error("Produit introuvable.");
+      const { categoryId, ...rest } = changes;
+      Object.assign(product, rest);
+      if (categoryId) {
+        const category = mockCategories.find((c) => c.id === categoryId);
+        product.categoryId = categoryId;
+        if (category) product.category = { id: category.id, name: category.name, slug: category.slug };
+      }
+      product.updatedAt = new Date().toISOString();
+      return mockDelay(product, 400);
+    }
+    const { data } = await httpClient.patch<Product>(`/products/${id}`, changes);
+    return data;
+  },
+
+  async remove(id: string): Promise<void> {
+    if (env.useMocks) {
+      const index = mockProducts.findIndex((p) => p.id === id);
+      if (index >= 0) mockProducts.splice(index, 1);
+      await mockDelay(undefined, 300);
+      return;
+    }
+    await httpClient.delete(`/products/${id}`);
+  },
 };
+
+export interface CategoryInput {
+  name: string;
+  slug?: string;
+  description?: string;
+  parentId?: string | null;
+}
 
 export const categoryService = {
   async list(): Promise<Category[]> {
@@ -159,5 +305,43 @@ export const categoryService = {
     }
     const { data } = await httpClient.get<Category>(`/categories/slug/${slug}`);
     return data;
+  },
+
+  async create(input: CategoryInput): Promise<Category> {
+    if (env.useMocks) {
+      const category: Category = {
+        id: `cat-${Date.now()}`,
+        name: input.name,
+        slug: input.slug || slugifyName(input.name),
+        description: input.description,
+        parentId: input.parentId ?? null,
+        productCount: 0,
+      };
+      mockCategories.push(category);
+      return mockDelay(category, 300);
+    }
+    const { data } = await httpClient.post<Category>("/categories", input);
+    return data;
+  },
+
+  async update(id: string, changes: Partial<CategoryInput>): Promise<Category> {
+    if (env.useMocks) {
+      const category = mockCategories.find((c) => c.id === id);
+      if (!category) throw new Error("Catégorie introuvable.");
+      Object.assign(category, changes);
+      return mockDelay(category, 300);
+    }
+    const { data } = await httpClient.patch<Category>(`/categories/${id}`, changes);
+    return data;
+  },
+
+  async remove(id: string): Promise<void> {
+    if (env.useMocks) {
+      const index = mockCategories.findIndex((c) => c.id === id);
+      if (index >= 0) mockCategories.splice(index, 1);
+      await mockDelay(undefined, 250);
+      return;
+    }
+    await httpClient.delete(`/categories/${id}`);
   },
 };

@@ -16,10 +16,21 @@ const CartPage = lazy(() => import("@/pages/public/CartPage"));
 const CheckoutPage = lazy(() => import("@/pages/public/CheckoutPage"));
 const OrderConfirmationPage = lazy(() => import("@/pages/public/OrderConfirmationPage"));
 
+const AboutPage = lazy(() => import("@/pages/info/AboutPage"));
+const CareersPage = lazy(() => import("@/pages/info/CareersPage"));
+const SellWithUsPage = lazy(() => import("@/pages/info/SellWithUsPage"));
+const ShippingReturnsPage = lazy(() => import("@/pages/info/ShippingReturnsPage"));
+const ContactPage = lazy(() => import("@/pages/info/ContactPage"));
+const FaqPage = lazy(() => import("@/pages/info/FaqPage"));
+const TermsPage = lazy(() => import("@/pages/info/TermsPage"));
+const PrivacyPage = lazy(() => import("@/pages/info/PrivacyPage"));
+const LegalNoticePage = lazy(() => import("@/pages/info/LegalNoticePage"));
+
 const LoginPage = lazy(() => import("@/pages/auth/LoginPage"));
 const RegisterPage = lazy(() => import("@/pages/auth/RegisterPage"));
 const ForgotPasswordPage = lazy(() => import("@/pages/auth/ForgotPasswordPage"));
 const ResetPasswordPage = lazy(() => import("@/pages/auth/ResetPasswordPage"));
+const VerifyEmailPage = lazy(() => import("@/pages/auth/VerifyEmailPage"));
 
 const ProfilePage = lazy(() => import("@/pages/account/ProfilePage"));
 const OrdersPage = lazy(() => import("@/pages/account/OrdersPage"));
@@ -38,6 +49,7 @@ const AdminSettingsPage = lazy(() => import("@/pages/admin/AdminSettingsPage"));
 
 const SellerDashboardPage = lazy(() => import("@/pages/seller/SellerDashboardPage"));
 const SellerProductsPage = lazy(() => import("@/pages/seller/SellerProductsPage"));
+const SellerProductFormPage = lazy(() => import("@/pages/seller/SellerProductFormPage"));
 const SellerOrdersPage = lazy(() => import("@/pages/seller/SellerOrdersPage"));
 const SellerCustomersPage = lazy(() => import("@/pages/seller/SellerCustomersPage"));
 const SellerAnalyticsPage = lazy(() => import("@/pages/seller/SellerAnalyticsPage"));
@@ -82,6 +94,16 @@ export function AppRouter() {
             element={<ProtectedRoute><AddressesPage /></ProtectedRoute>}
           />
 
+          <Route path={ROUTES.about} element={<AboutPage />} />
+          <Route path={ROUTES.careers} element={<CareersPage />} />
+          <Route path={ROUTES.sellWithUs} element={<SellWithUsPage />} />
+          <Route path={ROUTES.help.shipping} element={<ShippingReturnsPage />} />
+          <Route path={ROUTES.help.contact} element={<ContactPage />} />
+          <Route path={ROUTES.help.faq} element={<FaqPage />} />
+          <Route path={ROUTES.legal.terms} element={<TermsPage />} />
+          <Route path={ROUTES.legal.privacy} element={<PrivacyPage />} />
+          <Route path={ROUTES.legal.notice} element={<LegalNoticePage />} />
+
           <Route path={ROUTES.forbidden} element={<ForbiddenPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
@@ -91,6 +113,8 @@ export function AppRouter() {
           <Route path={ROUTES.register} element={<GuestRoute><RegisterPage /></GuestRoute>} />
           <Route path={ROUTES.forgotPassword} element={<GuestRoute><ForgotPasswordPage /></GuestRoute>} />
           <Route path={ROUTES.resetPassword} element={<GuestRoute><ResetPasswordPage /></GuestRoute>} />
+          {/* Pas de GuestRoute ici : un client déjà connecté doit aussi pouvoir ouvrir son lien de vérification. */}
+          <Route path={ROUTES.verifyEmail} element={<VerifyEmailPage />} />
         </Route>
 
         <Route
@@ -114,6 +138,8 @@ export function AppRouter() {
         >
           <Route index element={<SellerDashboardPage />} />
           <Route path="products" element={<SellerProductsPage />} />
+          <Route path="products/new" element={<SellerProductFormPage />} />
+          <Route path="products/:id/edit" element={<SellerProductFormPage />} />
           <Route path="orders" element={<SellerOrdersPage />} />
           <Route path="customers" element={<SellerCustomersPage />} />
           <Route path="analytics" element={<SellerAnalyticsPage />} />

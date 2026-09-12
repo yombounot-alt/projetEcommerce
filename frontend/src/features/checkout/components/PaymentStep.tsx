@@ -72,8 +72,9 @@ export function PaymentStep({ defaultValues, isSubmitting, onSubmit, onBack }: P
 
         <Alert>
           <AlertDescription>
-            Par sécurité, aucune donnée bancaire n'est jamais saisie ou stockée sur ce site : le paiement sera
-            finalisé via une passerelle de paiement certifiée (Stripe, PayPal…) lors de l'intégration backend.
+            Par sécurité, aucune donnée bancaire n'est jamais saisie ou stockée sur ce site : pour "Carte
+            bancaire", vous serez redirigé vers la page de paiement sécurisée ChapchaPay pour finaliser la
+            transaction.
           </AlertDescription>
         </Alert>
 

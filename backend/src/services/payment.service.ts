@@ -1,5 +1,5 @@
 import { Payment, type IPayment } from "../models/Payment";
-import { Order } from "../models/Order";
+import { Order, type IOrder } from "../models/Order";
 import {
   BadRequestError,
   ConflictError,
@@ -18,7 +18,79 @@ import { confirmStockSale, releaseStock } from "./stock.service";
 import { createNotification } from "./notification.service";
 import { recordAudit } from "./audit.service";
 import { notifyOwnerNewOrder } from "./orderNotification.service";
+import { logger } from "../utils/logger";
+import { env } from "../config/env";
 import type { Role } from "../utils/jwt";
+
+const MANUAL_METHODS = new Set(["cash_on_delivery", "bank_transfer"]);
+
+/**
+ * Applies a "captured" transition: marks the payment paid, confirms reserved stock as
+ * sold, and notifies the customer. Shared by the webhook path, manual admin reconciliation,
+ * and (indirectly, by NOT calling this) the late-capture-after-cancellation safety branch.
+ */
+async function applyCapturedTransition(payment: IPayment, order: IOrder): Promise<void> {
+  payment.status = "captured";
+  payment.paidAt = new Date();
+  await payment.save();
+
+  order.payment.status = "captured";
+  order.payment.providerReference = payment.transactionId;
+  order.status = "paid";
+  order.payment.processedAt = new Date();
+  await order.save();
+
+  for (const item of order.items) {
+    await confirmStockSale(String(item.product), item.quantity, {
+      reason: "Payment captured",
+      orderId: String(order._id),
+    });
+  }
+
+  await createNotification({
+    userId: String(order.customer),
+    type: "PAYMENT",
+    title: "Paiement reçu",
+    message: `Le paiement de la commande ${order.orderNumber} a été confirmé.`,
+    metadata: { orderId: String(order._id) },
+  });
+
+  await notifyOwnerNewOrder(order);
+}
+
+/**
+ * Applies a "failed" transition: cancels the order and releases reserved stock back to
+ * available. Shared by the webhook path, manual admin reconciliation, and the pending-payment
+ * expiry job.
+ */
+async function applyFailedTransition(
+  payment: IPayment,
+  order: IOrder,
+  reason: string,
+): Promise<void> {
+  payment.status = "failed";
+  await payment.save();
+
+  order.payment.status = "failed";
+  order.status = "cancelled";
+  order.cancelledReason = reason;
+  await order.save();
+
+  for (const item of order.items) {
+    await releaseStock(String(item.product), item.quantity, {
+      reason,
+      orderId: String(order._id),
+    });
+  }
+
+  await createNotification({
+    userId: String(order.customer),
+    type: "PAYMENT",
+    title: "Échec du paiement",
+    message: `Le paiement de la commande ${order.orderNumber} n'a pas pu être traité.`,
+    metadata: { orderId: String(order._id) },
+  });
+}
 
 function toPaymentDTO(payment: IPayment) {
   return {
@@ -180,55 +252,38 @@ export async function applyWebhookEvent(providerName: string, event: WebhookEven
   }
 
   payment.processedWebhookIds.push(event.eventId);
-  payment.status = event.status;
-  if (event.status === "captured") payment.paidAt = new Date();
   await payment.save();
 
-  order.payment.status = event.status;
-  order.payment.providerReference = event.transactionId;
-  let shouldNotifyOwner = false;
-
   if (event.status === "captured" && order.status === "pending") {
-    order.status = "paid";
-    order.payment.processedAt = new Date();
-    for (const item of order.items) {
-      await confirmStockSale(String(item.product), item.quantity, {
-        reason: "Payment captured via webhook",
-        orderId: String(order._id),
-      });
-    }
-    await createNotification({
-      userId: String(order.customer),
-      type: "PAYMENT",
-      title: "Paiement reçu",
-      message: `Le paiement de la commande ${order.orderNumber} a été confirmé.`,
-      metadata: { orderId: String(order._id) },
-    });
-    shouldNotifyOwner = true;
+    await applyCapturedTransition(payment, order);
   } else if (event.status === "failed" && order.status === "pending") {
-    order.status = "cancelled";
-    order.cancelledReason = "Échec du paiement";
-    for (const item of order.items) {
-      await releaseStock(String(item.product), item.quantity, {
-        reason: "Payment failed via webhook",
-        orderId: String(order._id),
-      });
-    }
-    await createNotification({
-      userId: String(order.customer),
-      type: "PAYMENT",
-      title: "Échec du paiement",
-      message: `Le paiement de la commande ${order.orderNumber} n'a pas pu être traité.`,
-      metadata: { orderId: String(order._id) },
-    });
+    await applyFailedTransition(payment, order, "Échec du paiement");
   } else if (event.status === "refunded") {
+    order.payment.status = "refunded";
     order.status = "refunded";
-  }
-
-  await order.save();
-
-  if (shouldNotifyOwner) {
-    await notifyOwnerNewOrder(order);
+    await order.save();
+  } else if (event.status === "captured" && order.status !== "paid") {
+    // The order was already resolved otherwise (cancelled by a prior failed webhook, or by
+    // the pending-payment expiry job) before this "captured" event arrived — most likely a
+    // late/delayed webhook. Reserved stock may already have been released and resold, so we
+    // must NOT silently re-confirm the sale. Record the truth on the payment and raise this
+    // loudly for manual reconciliation (see reconcilePayment) instead of guessing.
+    payment.status = "captured";
+    payment.paidAt = new Date();
+    payment.metadata = { ...payment.metadata, lateCaptureAfterResolution: true };
+    await payment.save();
+    logger.error("Payment captured via webhook after its order was already resolved otherwise", {
+      paymentId: String(payment._id),
+      orderId: String(order._id),
+      orderStatus: order.status,
+    });
+    await recordAudit({
+      action: "PAYMENT_CAPTURED_AFTER_ORDER_RESOLVED",
+      resource: "Payment",
+      resourceId: String(payment._id),
+      metadata: { provider: providerName, eventId: event.eventId, orderStatus: order.status },
+    });
+    return;
   }
 
   await recordAudit({
@@ -237,6 +292,108 @@ export async function applyWebhookEvent(providerName: string, event: WebhookEven
     resourceId: String(payment._id),
     metadata: { provider: providerName, eventId: event.eventId, status: event.status },
   });
+}
+
+/**
+ * Admin-only manual override for when a payment is stuck "pending" with no incoming webhook
+ * (e.g. provider-side webhook delivery issue) and the admin has independently verified the
+ * real outcome in the provider's own dashboard. Only allowed from "pending" — a payment
+ * already in a terminal state must go through refundPayment instead, never be overwritten
+ * here (rule: no arbitrary SUCCESS -> PENDING-style transitions).
+ */
+export async function reconcilePayment(
+  paymentId: string,
+  actor: { id: string; role: Role },
+  targetStatus: "captured" | "failed",
+  reason?: string,
+) {
+  if (actor.role !== "admin") {
+    throw new ForbiddenError(
+      "Seuls les administrateurs peuvent réconcilier un paiement",
+      "RECONCILE_FORBIDDEN",
+    );
+  }
+
+  const payment = await Payment.findById(paymentId);
+  if (!payment) throw new NotFoundError("Paiement introuvable", "PAYMENT_NOT_FOUND");
+  if (payment.status !== "pending") {
+    throw new ConflictError(
+      `Ce paiement est déjà au statut "${payment.status}" — utilisez le remboursement si nécessaire`,
+      "PAYMENT_NOT_PENDING",
+    );
+  }
+
+  const order = await Order.findById(payment.order);
+  if (!order) throw new NotFoundError("Commande introuvable pour ce paiement", "ORDER_NOT_FOUND");
+  if (order.status !== "pending") {
+    throw new ConflictError(
+      `La commande est déjà au statut "${order.status}"`,
+      "ORDER_NOT_PENDING",
+    );
+  }
+
+  payment.processedWebhookIds.push(`manual:${actor.id}:${Date.now()}`);
+  await payment.save();
+
+  if (targetStatus === "captured") {
+    await applyCapturedTransition(payment, order);
+  } else {
+    await applyFailedTransition(payment, order, reason ?? "Paiement réconcilié manuellement comme échoué");
+  }
+
+  await recordAudit({
+    actorId: actor.id,
+    action: "PAYMENT_MANUALLY_RECONCILED",
+    resource: "Payment",
+    resourceId: String(payment._id),
+    metadata: { targetStatus, reason },
+  });
+
+  return { payment: toPaymentDTO(payment) };
+}
+
+/**
+ * Safety net for gateway payments (ChapchaPay...) that never receive a confirming webhook:
+ * past PAYMENT_PENDING_TIMEOUT_MINUTES, treat them as failed, release reserved stock, and
+ * notify the customer to retry. Never applies to manual methods (cash_on_delivery/
+ * bank_transfer), which are legitimately "pending" until an admin settles them by hand.
+ * Intended to be called on a recurring interval — see server.ts.
+ */
+export async function expirePendingPayments(): Promise<number> {
+  const cutoff = new Date(Date.now() - env.PAYMENT_PENDING_TIMEOUT_MINUTES * 60_000);
+  const stalePayments = await Payment.find({
+    status: "pending",
+    createdAt: { $lt: cutoff },
+    method: { $nin: [...MANUAL_METHODS] },
+  });
+
+  let expiredCount = 0;
+  for (const payment of stalePayments) {
+    const order = await Order.findById(payment.order);
+    if (!order || order.status !== "pending") continue; // already resolved otherwise
+
+    try {
+      await applyFailedTransition(
+        payment,
+        order,
+        `Paiement expiré : aucune confirmation reçue après ${env.PAYMENT_PENDING_TIMEOUT_MINUTES} minutes`,
+      );
+      await recordAudit({
+        action: "PAYMENT_EXPIRED",
+        resource: "Payment",
+        resourceId: String(payment._id),
+        metadata: { orderId: String(order._id), timeoutMinutes: env.PAYMENT_PENDING_TIMEOUT_MINUTES },
+      });
+      expiredCount++;
+    } catch (error) {
+      logger.error("Failed to expire stale pending payment", {
+        paymentId: String(payment._id),
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  return expiredCount;
 }
 
 export async function refundPayment(

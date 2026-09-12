@@ -1,10 +1,14 @@
 import type { Server } from "http";
 import { createApp } from "./app";
-import { env } from "./config/env";
+import { env, isTest } from "./config/env";
 import { connectDatabase, disconnectDatabase } from "./config/database";
 import { logger } from "./utils/logger";
+import { expirePendingPayments } from "./services/payment.service";
 
 let server: Server | undefined;
+let paymentExpiryTimer: NodeJS.Timeout | undefined;
+
+const PAYMENT_EXPIRY_CHECK_INTERVAL_MS = 5 * 60_000;
 
 async function start(): Promise<void> {
   await connectDatabase();
@@ -13,6 +17,17 @@ async function start(): Promise<void> {
   server = app.listen(env.PORT, () => {
     logger.info(`Luméra API listening on port ${env.PORT} (${env.NODE_ENV}) — docs at /api/docs`);
   });
+
+  // Safety net for gateway payments stuck "pending" with no confirming webhook — see
+  // payment.service.ts#expirePendingPayments. Disabled in tests (each test file manages its
+  // own isolated DB/timing and doesn't want a background timer running).
+  if (!isTest) {
+    paymentExpiryTimer = setInterval(() => {
+      expirePendingPayments().catch((error) => {
+        logger.error("Payment expiry sweep failed", { error });
+      });
+    }, PAYMENT_EXPIRY_CHECK_INTERVAL_MS);
+  }
 }
 
 async function shutdown(signal: string): Promise<void> {
@@ -24,6 +39,9 @@ async function shutdown(signal: string): Promise<void> {
   }, 10_000);
 
   try {
+    if (paymentExpiryTimer) {
+      clearInterval(paymentExpiryTimer);
+    }
     if (server) {
       await new Promise<void>((resolve, reject) => {
         server!.close((err) => (err ? reject(err) : resolve()));

@@ -11,6 +11,11 @@ export const refundPaymentSchema = z.object({
   reason: z.string().trim().max(500).optional(),
 });
 
+export const reconcilePaymentSchema = z.object({
+  status: z.enum(["captured", "failed"]),
+  reason: z.string().trim().max(500).optional(),
+});
+
 /**
  * Generic webhook envelope. Real provider payloads are provider-specific and are
  * normalized inside integrations/payment/providers/*; this only validates the shape

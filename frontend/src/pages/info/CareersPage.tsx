@@ -1,4 +1,4 @@
-import { MailIcon } from "lucide-react";
+import { MailIcon, MessageCircleIcon } from "lucide-react";
 import { ContentSections } from "@/components/common/ContentSections";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Seo } from "@/components/common/Seo";
@@ -25,12 +25,22 @@ export default function CareersPage() {
       <Seo title="Carrières" canonicalPath={ROUTES.careers} />
       <PageHeader title="Carrières" description="Aucune offre en cours, mais nous lisons chaque candidature spontanée." />
       <ContentSections sections={SECTIONS} />
-      <a
-        href="mailto:carrieres@lumera.example"
-        className="mt-8 inline-flex items-center gap-2 text-sm font-medium text-foreground underline underline-offset-4"
-      >
-        <MailIcon className="size-4" /> carrieres@lumera.example
-      </a>
+      <div className="mt-8 flex flex-col gap-3">
+        <a
+          href="mailto:yombounot@gmail.com"
+          className="inline-flex items-center gap-2 text-sm font-medium text-foreground underline underline-offset-4"
+        >
+          <MailIcon className="size-4" /> yombounot@gmail.com
+        </a>
+        <a
+          href="https://wa.me/224620617279"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 text-sm font-medium text-foreground underline underline-offset-4"
+        >
+          <MessageCircleIcon className="size-4" /> WhatsApp : +224 620 61 72 79
+        </a>
+      </div>
     </div>
   );
 }

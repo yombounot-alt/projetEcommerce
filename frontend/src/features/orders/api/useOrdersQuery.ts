@@ -31,5 +31,9 @@ export function useOrderByNumberQuery(orderNumber: string | undefined) {
     queryKey: queryKeys.orders.byNumber(orderNumber ?? ""),
     queryFn: () => orderService.getByOrderNumber(orderNumber as string),
     enabled: Boolean(orderNumber),
+    // ChapchaPay confirms payment asynchronously via webhook (no documented return_url to
+    // bring the customer straight back with a final status) — poll while still "pending" so
+    // the confirmation page updates itself once the webhook lands, without a manual refresh.
+    refetchInterval: (query) => (query.state.data?.status === "pending" ? 4000 : false),
   });
 }

@@ -26,7 +26,7 @@ const STEPS = [
 export default function CheckoutPage() {
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
-  const { items, subtotal, clear: clearCart } = useCart();
+  const { items, subtotal, isLoading: isCartLoading, clear: clearCart } = useCart();
   const createOrder = useCreateOrderMutation();
   const initializePayment = useInitializePaymentMutation();
   const isSubmitting = createOrder.isPending || initializePayment.isPending;
@@ -41,7 +41,10 @@ export default function CheckoutPage() {
   const [shippingMethod, setShippingMethod] = useState<ShippingMethodValues>({ methodId: "standard" });
   const [shippingCost, setShippingCost] = useState(0);
 
-  if (items.length === 0) {
+  // isCartLoading guards against a false-positive redirect: on a fresh page load the
+  // server cart query hasn't resolved yet, so `items` is momentarily empty even for a
+  // customer with a non-empty cart.
+  if (!isCartLoading && items.length === 0) {
     return <Navigate to={ROUTES.cart} replace />;
   }
 
@@ -67,7 +70,13 @@ export default function CheckoutPage() {
           initializePayment.mutate(
             { orderId: order.id, method: payment.method },
             {
-              onSuccess: ({ status }) => {
+              onSuccess: ({ status, redirectUrl }) => {
+                // card / mobile_money go through ChapchaPay: send the customer to their
+                // hosted payment page. The order stays "pending" until their webhook confirms.
+                if (redirectUrl) {
+                  window.location.href = redirectUrl;
+                  return;
+                }
                 toast.success(
                   status === "captured"
                     ? "Paiement confirmé, votre commande a été passée !"

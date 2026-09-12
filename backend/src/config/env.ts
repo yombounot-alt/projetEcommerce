@@ -19,10 +19,16 @@ const envSchema = z.object({
 
   COOKIE_SECRET: z.string().min(16, "COOKIE_SECRET must be at least 16 characters"),
 
-  PAYMENT_API_URL: z.string().optional().default(""),
-  PAYMENT_API_KEY: z.string().optional().default(""),
-  PAYMENT_SECRET_KEY: z.string().optional().default(""),
-  PAYMENT_WEBHOOK_SECRET: z.string().optional().default(""),
+  // === Paiement ChapchaPay (voir src/integrations/payment/providers/chapchapay.provider.ts) ===
+  CHAPCHAPAY_BASE_URL: z.string().url().default("https://chapchappay.com/api"),
+  CHAPCHAPAY_API_KEY: z.string().optional().default(""),
+  CHAPCHAPAY_HMAC_SECRET: z.string().optional().default(""),
+  // URL publique de CE backend (utilisée pour construire notify_url envoyé à ChapchaPay).
+  BACKEND_PUBLIC_URL: z.string().url().default("http://localhost:5000"),
+  // Filet de sécurité : au-delà de ce délai, un paiement gateway (ChapchaPay...) resté
+  // "pending" sans webhook est considéré expiré (stock relâché) — voir paymentExpiry.service.ts.
+  // Ne s'applique pas aux méthodes manuelles (cash_on_delivery/bank_transfer).
+  PAYMENT_PENDING_TIMEOUT_MINUTES: z.coerce.number().int().positive().default(60),
 
   SMS_API_URL: z.string().optional().default(""),
   SMS_API_KEY: z.string().optional().default(""),

@@ -11,13 +11,13 @@ import type {
 /**
  * Placeholder adapter for card / mobile money / PayPal-style gateway payments.
  *
- * No real provider is wired here yet: the official API documentation (endpoint URLs,
- * auth scheme, request/response payloads, webhook signature algorithm) has not been
- * supplied. Per project rules, no API is invented. Once a Guinea-market provider's
- * docs are provided, replace the bodies below with real HTTP calls (see
- * PAYMENT_API_URL / PAYMENT_API_KEY / PAYMENT_SECRET_KEY / PAYMENT_WEBHOOK_SECRET in
- * src/config/env.ts) — the rest of the system (OrderService, PaymentService, routes)
- * requires no changes since it only depends on the PaymentProvider interface.
+ * The Guinea-market gateway is now handled by ChapchaPayProvider (see
+ * providers/chapchapay.provider.ts) for the "card" and "mobile_money" methods.
+ * This placeholder remains the fallback for any other method (e.g. "paypal") that has
+ * no configured provider yet — per project rules, no API is invented for those until
+ * their official docs are supplied. The rest of the system (OrderService, PaymentService,
+ * routes) requires no changes to add one since it only depends on the PaymentProvider
+ * interface.
  */
 export class GatewayPaymentProvider implements PaymentProvider {
   readonly name = "gateway";

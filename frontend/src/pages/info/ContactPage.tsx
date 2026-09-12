@@ -6,9 +6,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ROUTES } from "@/constants/routes.constants";
 
 const CHANNELS = [
-  { icon: MailIcon, label: "Email", value: "support@lumera.example", href: "mailto:support@lumera.example" },
-  { icon: PhoneIcon, label: "Téléphone", value: "+224 600 00 00 00", href: "tel:+224600000000" },
-  { icon: MapPinIcon, label: "Adresse", value: "Conakry, Guinée", href: undefined },
+  { icon: MailIcon, label: "Email", value: "yombounot@gmail.com", href: "mailto:yombounot@gmail.com" },
+  { icon: PhoneIcon, label: "Téléphone", value: "+224 620 61 72 79", href: "tel:+224620617279" },
+  {
+    icon: MapPinIcon,
+    label: "Adresse",
+    value: "Enta Marché, Commune de Tombolia, Conakry - Rép. de Guinée",
+    href: undefined,
+  },
 ];
 
 export default function ContactPage() {

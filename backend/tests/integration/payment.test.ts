@@ -80,17 +80,19 @@ describe("Payments", () => {
     expect(res.status).toBe(403);
   });
 
-  it("returns 503 for an unconfigured gateway method (card) without leaving stock reserved indefinitely", async () => {
+  it("returns 503 for an unconfigured gateway method (paypal) without leaving stock reserved indefinitely", async () => {
     const seller = await createUser("seller");
     const customer = await createUser("customer");
     const product = await createProduct(String(seller.user._id));
 
     const orderRes = await createPendingOrder(customer.accessToken, String(product._id));
 
+    // "card"/"mobile_money" are handled by ChapchaPay (see payment.service.ts) — "paypal"
+    // is the method still left on the unconfigured gateway placeholder.
     const res = await request(app)
       .post("/api/v1/payments/initialize")
       .set(authHeader(customer.accessToken))
-      .send({ orderId: orderRes.body.id, method: "card" });
+      .send({ orderId: orderRes.body.id, method: "paypal" });
 
     expect(res.status).toBe(503);
     expect(res.body.code).toBe("PAYMENT_METHOD_UNAVAILABLE");
@@ -182,6 +184,166 @@ describe("Payments", () => {
         .set(authHeader(customer.accessToken))
         .send({});
       expect(forbiddenRes.status).toBe(403);
+    });
+  });
+
+  describe("Manual reconciliation", () => {
+    // A "card" payment stuck in "pending" (as if ChapchaPay never delivered a webhook) is
+    // created directly rather than via /payments/initialize, to avoid a real HTTP call to
+    // ChapchaPay from the test suite.
+    async function createStuckGatewayPayment(customerToken: string, sellerId: string) {
+      const product = await createProduct(sellerId);
+      const orderRes = await createPendingOrder(customerToken, String(product._id));
+      const payment = await Payment.create({
+        order: orderRes.body.id,
+        provider: "chapchapay",
+        transactionId: `test_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+        amount: orderRes.body.total,
+        currency: "GNF",
+        status: "pending",
+        method: "card",
+        idempotencyKey: `test-key-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      });
+      return { orderRes, payment, product };
+    }
+
+    it("lets an admin reconcile a stuck pending payment to captured", async () => {
+      const seller = await createUser("seller");
+      const admin = await createUser("admin");
+      const customer = await createUser("customer");
+      const { orderRes, payment, product } = await createStuckGatewayPayment(
+        customer.accessToken,
+        String(seller.user._id),
+      );
+
+      const res = await request(app)
+        .post(`/api/v1/payments/${payment.id}/reconcile`)
+        .set(authHeader(admin.accessToken))
+        .send({ status: "captured" });
+
+      expect(res.status).toBe(200);
+      expect(res.body.status).toBe("captured");
+
+      const order = await Order.findById(orderRes.body.id);
+      expect(order!.status).toBe("paid");
+
+      const updatedProduct = await Product.findById(product._id);
+      expect(updatedProduct!.soldStock).toBe(1);
+      expect(updatedProduct!.reservedStock).toBe(0);
+    });
+
+    it("lets an admin reconcile a stuck pending payment to failed and releases stock", async () => {
+      const seller = await createUser("seller");
+      const admin = await createUser("admin");
+      const customer = await createUser("customer");
+      const { orderRes, payment, product } = await createStuckGatewayPayment(
+        customer.accessToken,
+        String(seller.user._id),
+      );
+
+      const res = await request(app)
+        .post(`/api/v1/payments/${payment.id}/reconcile`)
+        .set(authHeader(admin.accessToken))
+        .send({ status: "failed", reason: "Confirmé refusé dans le dashboard ChapchaPay" });
+
+      expect(res.status).toBe(200);
+      expect(res.body.status).toBe("failed");
+
+      const order = await Order.findById(orderRes.body.id);
+      expect(order!.status).toBe("cancelled");
+
+      const updatedProduct = await Product.findById(product._id);
+      expect(updatedProduct!.availableStock).toBe(5);
+      expect(updatedProduct!.reservedStock).toBe(0);
+    });
+
+    it("rejects reconciliation from a non-admin", async () => {
+      const seller = await createUser("seller");
+      const customer = await createUser("customer");
+      const { payment } = await createStuckGatewayPayment(customer.accessToken, String(seller.user._id));
+
+      const res = await request(app)
+        .post(`/api/v1/payments/${payment.id}/reconcile`)
+        .set(authHeader(customer.accessToken))
+        .send({ status: "captured" });
+
+      expect(res.status).toBe(403);
+    });
+
+    it("rejects reconciliation of a payment that is no longer pending", async () => {
+      const seller = await createUser("seller");
+      const admin = await createUser("admin");
+      const customer = await createUser("customer");
+      const { payment } = await createStuckGatewayPayment(customer.accessToken, String(seller.user._id));
+
+      await request(app)
+        .post(`/api/v1/payments/${payment.id}/reconcile`)
+        .set(authHeader(admin.accessToken))
+        .send({ status: "captured" });
+
+      const secondAttempt = await request(app)
+        .post(`/api/v1/payments/${payment.id}/reconcile`)
+        .set(authHeader(admin.accessToken))
+        .send({ status: "failed" });
+
+      expect(secondAttempt.status).toBe(409);
+    });
+  });
+
+  describe("Pending payment expiry", () => {
+    it("expires a stale pending gateway payment, cancels the order, and releases stock", async () => {
+      const seller = await createUser("seller");
+      const customer = await createUser("customer");
+      const product = await createProduct(String(seller.user._id));
+      const orderRes = await createPendingOrder(customer.accessToken, String(product._id));
+
+      const staleDate = new Date(Date.now() - 61 * 60_000); // older than the 60-minute default
+      await Payment.create({
+        order: orderRes.body.id,
+        provider: "chapchapay",
+        transactionId: `test_expire_${Date.now()}`,
+        amount: orderRes.body.total,
+        currency: "GNF",
+        status: "pending",
+        method: "card",
+        idempotencyKey: `test-expire-key-${Date.now()}`,
+        createdAt: staleDate,
+      });
+
+      const expiredCount = await paymentService.expirePendingPayments();
+      expect(expiredCount).toBeGreaterThanOrEqual(1);
+
+      const order = await Order.findById(orderRes.body.id);
+      expect(order!.status).toBe("cancelled");
+
+      const updatedProduct = await Product.findById(product._id);
+      expect(updatedProduct!.availableStock).toBe(5);
+      expect(updatedProduct!.reservedStock).toBe(0);
+    });
+
+    it("never expires manual-method payments (cash_on_delivery), even if very old", async () => {
+      const seller = await createUser("seller");
+      const customer = await createUser("customer");
+      const product = await createProduct(String(seller.user._id));
+      const orderRes = await createPendingOrder(customer.accessToken, String(product._id));
+
+      const staleDate = new Date(Date.now() - 24 * 60 * 60_000); // 24h old
+      await Payment.create({
+        order: orderRes.body.id,
+        provider: "manual",
+        transactionId: `test_manual_${Date.now()}`,
+        amount: orderRes.body.total,
+        currency: "GNF",
+        status: "pending",
+        method: "cash_on_delivery",
+        idempotencyKey: `test-manual-key-${Date.now()}`,
+        createdAt: staleDate,
+      });
+
+      await paymentService.expirePendingPayments();
+
+      const order = await Order.findById(orderRes.body.id);
+      expect(order!.status).toBe("pending");
     });
   });
 });

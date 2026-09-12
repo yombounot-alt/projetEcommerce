@@ -4,7 +4,11 @@ import * as paymentController from "../controllers/payment.controller";
 import { authenticate, authorize } from "../middlewares/auth";
 import { validate } from "../middlewares/validate";
 import { paymentLimiter } from "../middlewares/rateLimiters";
-import { initializePaymentSchema, refundPaymentSchema } from "../validators/payment.validator";
+import {
+  initializePaymentSchema,
+  refundPaymentSchema,
+  reconcilePaymentSchema,
+} from "../validators/payment.validator";
 import { idParam } from "../validators/common.validator";
 
 const router = Router();
@@ -28,7 +32,8 @@ router.post(
  *     description: >
  *       Idempotent per order — retrying reuses the existing pending Payment record.
  *       `cash_on_delivery`/`bank_transfer` succeed immediately (manual settlement);
- *       other methods return 503 until a real gateway provider is configured.
+ *       `card`/`mobile_money` redirect to ChapchaPay (`redirectUrl`); `paypal` returns 503
+ *       until a provider is configured for it.
  *     security: [{ bearerAuth: [] }]
  *     requestBody:
  *       required: true
@@ -60,6 +65,19 @@ router.post(
   authorize("admin"),
   validate({ params: idParam, body: refundPaymentSchema }),
   paymentController.refund,
+);
+
+/**
+ * Manual override for a payment stuck "pending" when no webhook was ever received — only
+ * for use after the admin has independently verified the real outcome in the provider's
+ * own dashboard. Only allowed from "pending" (see payment.service.ts#reconcilePayment).
+ */
+router.post(
+  "/:id/reconcile",
+  authenticate,
+  authorize("admin"),
+  validate({ params: idParam, body: reconcilePaymentSchema }),
+  paymentController.reconcile,
 );
 
 export default router;

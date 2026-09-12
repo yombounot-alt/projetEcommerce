@@ -8,6 +8,8 @@ const MANUAL_METHODS = new Set<Order["payment"]["method"]>(["cash_on_delivery", 
 
 export interface InitializePaymentResult {
   status: PaymentStatus;
+  /** Present for gateway methods (ChapchaPay) — redirect the browser here to pay. */
+  redirectUrl?: string;
 }
 
 export const paymentService = {
@@ -32,10 +34,10 @@ export const paymentService = {
       }
       return mockDelay({ status }, 600);
     }
-    const { data } = await httpClient.post<{ status: PaymentStatus }>("/payments/initialize", {
-      orderId,
-      method,
-    });
-    return { status: data.status };
+    const { data } = await httpClient.post<{ status: PaymentStatus; redirectUrl?: string }>(
+      "/payments/initialize",
+      { orderId, method },
+    );
+    return { status: data.status, redirectUrl: data.redirectUrl };
   },
 };

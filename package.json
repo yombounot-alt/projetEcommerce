@@ -1,0 +1,12 @@
+{
+  "name": "lumera-monorepo",
+  "private": true,
+  "description": "Outillage racine (hook pre-commit) pour les projets backend/ et frontend/, chacun géré indépendamment avec son propre package.json.",
+  "scripts": {
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.10"
+  }
+}

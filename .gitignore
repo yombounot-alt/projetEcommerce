@@ -1,3 +1,6 @@
+# Root tooling (husky/lint-staged) — backend/ and frontend/ have their own node_modules ignore
+node_modules/
+
 # OS
 .DS_Store
 Thumbs.db

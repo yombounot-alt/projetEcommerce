@@ -36,6 +36,11 @@ export default function CheckoutPage() {
   const initializePayment = useInitializePaymentMutation();
   const isSubmitting = createOrder.isPending || initializePayment.isPending;
 
+  // Une fois la commande passée, le panier est vidé (clearCart) avant même que l'initialisation
+  // du paiement (async) ne se termine — sans ce garde, la page se re-rend avec un panier vide et
+  // la garde "panier vide -> retour au panier" ci-dessous coupe la redirection ChapchaPay en cours.
+  const [orderPlaced, setOrderPlaced] = useState(false);
+
   const [stepIndex, setStepIndex] = useState(0);
   const [customerInfo, setCustomerInfo] = useState<CustomerInfoValues>({
     email: user?.email ?? "",
@@ -60,7 +65,7 @@ export default function CheckoutPage() {
   // isCartLoading guards against a false-positive redirect: on a fresh page load the
   // server cart query hasn't resolved yet, so `items` is momentarily empty even for a
   // customer with a non-empty cart.
-  if (!isCartLoading && items.length === 0) {
+  if (!isCartLoading && !orderPlaced && items.length === 0) {
     return <Navigate to={ROUTES.cart} replace />;
   }
 
@@ -86,6 +91,7 @@ export default function CheckoutPage() {
       },
       {
         onSuccess: (order) => {
+          setOrderPlaced(true);
           clearCart();
           initializePayment.mutate(
             { orderId: order.id, method: payment.method },

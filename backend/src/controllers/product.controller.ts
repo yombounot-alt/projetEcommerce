@@ -5,10 +5,15 @@ import * as productService from "../services/product.service";
 
 export const list = catchAsync(async (req: Request, res: Response) => {
   const isPublicRoute = !req.user || req.user.role === "customer";
-  const result = await productService.listProducts(
-    req.query as productService.ProductListFilters,
-    isPublicRoute,
-  );
+  const filters = req.query as productService.ProductListFilters;
+  // A seller only ever sees their own catalogue — force-override any client-supplied
+  // `seller` filter so this holds regardless of which route reaches this controller
+  // (marketplace isolation; see seller.routes.ts for the storefront-specific route that
+  // already did this — this makes the generic /products endpoint safe too).
+  if (req.user?.role === "seller") {
+    filters.seller = req.user.id;
+  }
+  const result = await productService.listProducts(filters, isPublicRoute);
   res.status(200).json(result);
 });
 

@@ -1,5 +1,10 @@
 import { FilterQuery } from "mongoose";
-import { Product, type IProduct } from "../models/Product";
+import {
+  Product,
+  type IProduct,
+  type IProductVariant,
+  type IProductVariantOption,
+} from "../models/Product";
 import { Category } from "../models/Category";
 import { Brand } from "../models/Brand";
 import { ForbiddenError, NotFoundError } from "../utils/AppError";
@@ -43,6 +48,16 @@ export interface ProductDTO {
   tags: string[];
   isFeatured: boolean;
   isNew: boolean;
+  variantOptions: IProductVariantOption[];
+  variants: Array<{
+    id: string;
+    sku: string;
+    attributes: Record<string, string>;
+    price?: number;
+    compareAtPrice?: number;
+    stock: number;
+    image?: string;
+  }>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -84,6 +99,16 @@ export function toProductDTO(product: PopulatedProduct): ProductDTO {
     tags: product.tags,
     isFeatured: product.isFeatured,
     isNew,
+    variantOptions: product.variantOptions,
+    variants: product.variants.map((v) => ({
+      id: String(v._id),
+      sku: v.sku,
+      attributes: v.attributes,
+      price: v.price,
+      compareAtPrice: v.compareAtPrice,
+      stock: v.availableStock,
+      image: v.image,
+    })),
     createdAt: product.createdAt,
     updatedAt: product.updatedAt,
   };
@@ -279,6 +304,55 @@ export interface CreateProductInput {
   tags?: string[];
   status?: IProduct["status"];
   isFeatured?: boolean;
+  variantOptions?: IProductVariantOption[];
+  variants?: VariantInput[];
+}
+
+interface VariantInput {
+  id?: string;
+  sku: string;
+  attributes: Record<string, string>;
+  price?: number;
+  compareAtPrice?: number;
+  availableStock: number;
+  image?: string;
+}
+
+/**
+ * Builds the variants subdocument array from admin input, preserving reservedStock/soldStock
+ * for variants matched by `id` (an in-flight reservation/sale must never be reset to 0 just
+ * because an admin edited the price or added another variant) — only availableStock is ever
+ * admin-settable directly. A variant with no `id` is treated as new (reservedStock/soldStock
+ * start at 0, Mongoose assigns a fresh `_id`).
+ */
+function buildVariantsArray(
+  input: VariantInput[],
+  existingVariants: IProductVariant[] = [],
+): Partial<IProductVariant>[] {
+  return input.map((v) => {
+    const existing = v.id ? existingVariants.find((e) => String(e._id) === v.id) : undefined;
+    return {
+      _id: existing?._id,
+      sku: v.sku,
+      attributes: v.attributes,
+      price: v.price,
+      compareAtPrice: v.compareAtPrice,
+      availableStock: v.availableStock,
+      reservedStock: existing?.reservedStock ?? 0,
+      soldStock: existing?.soldStock ?? 0,
+      image: v.image,
+    };
+  });
+}
+
+function computeStockAggregates(
+  variants: Array<Pick<IProductVariant, "availableStock" | "reservedStock" | "soldStock">>,
+) {
+  return {
+    availableStock: variants.reduce((sum, v) => sum + v.availableStock, 0),
+    reservedStock: variants.reduce((sum, v) => sum + v.reservedStock, 0),
+    soldStock: variants.reduce((sum, v) => sum + v.soldStock, 0),
+  };
 }
 
 async function uniqueSlug(name: string): Promise<string> {
@@ -303,6 +377,10 @@ export async function createProduct(sellerId: string, input: CreateProductInput)
 
   const slug = await uniqueSlug(input.name);
 
+  const variants = input.variants?.length ? buildVariantsArray(input.variants) : [];
+  const stockOverride =
+    variants.length > 0 ? computeStockAggregates(variants as IProductVariant[]) : null;
+
   const product = await Product.create({
     name: input.name,
     slug,
@@ -315,7 +393,7 @@ export async function createProduct(sellerId: string, input: CreateProductInput)
     category: input.categoryId,
     brand: input.brandId,
     seller: sellerId,
-    availableStock: input.stock,
+    availableStock: stockOverride ? stockOverride.availableStock : input.stock,
     lowStockThreshold: input.lowStockThreshold ?? 5,
     weightKg: input.weightKg,
     dimensions: input.dimensions,
@@ -324,6 +402,8 @@ export async function createProduct(sellerId: string, input: CreateProductInput)
     tags: input.tags ?? [],
     status: input.status ?? "draft",
     isFeatured: input.isFeatured ?? false,
+    variantOptions: input.variantOptions ?? [],
+    variants,
   });
 
   return getProductById(String(product._id));
@@ -360,8 +440,17 @@ export async function updateProduct(
     product.brand = brand._id;
   }
 
-  const { categoryId: _categoryId, brandId: _brandId, ...rest } = changes;
+  const { categoryId: _categoryId, brandId: _brandId, variants: variantsInput, ...rest } = changes;
   Object.assign(product, rest);
+
+  if (variantsInput !== undefined) {
+    const variants = buildVariantsArray(variantsInput, product.variants);
+    product.variants = variants as IProduct["variants"];
+    const aggregates = computeStockAggregates(variants as IProductVariant[]);
+    product.availableStock = aggregates.availableStock;
+    product.reservedStock = aggregates.reservedStock;
+    product.soldStock = aggregates.soldStock;
+  }
 
   if (changes.name) {
     product.slug = await uniqueSlug(changes.name);

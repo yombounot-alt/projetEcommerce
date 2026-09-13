@@ -7,11 +7,18 @@ interface CartState {
   items: CartItem[];
   isOpen: boolean;
   addItem: (item: CartItem) => void;
-  removeItem: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  removeItem: (productId: string, variantId?: string) => void;
+  updateQuantity: (productId: string, quantity: number, variantId?: string) => void;
   clear: () => void;
   openCart: () => void;
   closeCart: () => void;
+}
+
+/** Two lines are the same only if both productId AND variantId match — two different
+ *  variants of the same product are always separate cart lines (mirrors the backend's
+ *  cart.service.ts#matchesLine). */
+function isSameLine(item: CartItem, productId: string, variantId?: string): boolean {
+  return item.productId === productId && (item.variantId ?? undefined) === (variantId ?? undefined);
 }
 
 export const useCartStore = create<CartState>()(
@@ -21,12 +28,12 @@ export const useCartStore = create<CartState>()(
       isOpen: false,
 
       addItem: (item) => {
-        const existing = get().items.find((i) => i.productId === item.productId);
+        const existing = get().items.find((i) => isSameLine(i, item.productId, item.variantId));
         if (existing) {
           const nextQuantity = Math.min(existing.quantity + item.quantity, existing.stock);
           set({
             items: get().items.map((i) =>
-              i.productId === item.productId ? { ...i, quantity: nextQuantity } : i,
+              isSameLine(i, item.productId, item.variantId) ? { ...i, quantity: nextQuantity } : i,
             ),
           });
           return;
@@ -34,18 +41,20 @@ export const useCartStore = create<CartState>()(
         set({ items: [...get().items, item] });
       },
 
-      removeItem: (productId) => {
-        set({ items: get().items.filter((i) => i.productId !== productId) });
+      removeItem: (productId, variantId) => {
+        set({ items: get().items.filter((i) => !isSameLine(i, productId, variantId)) });
       },
 
-      updateQuantity: (productId, quantity) => {
+      updateQuantity: (productId, quantity, variantId) => {
         if (quantity <= 0) {
-          get().removeItem(productId);
+          get().removeItem(productId, variantId);
           return;
         }
         set({
           items: get().items.map((i) =>
-            i.productId === productId ? { ...i, quantity: Math.min(quantity, i.stock) } : i,
+            isSameLine(i, productId, variantId)
+              ? { ...i, quantity: Math.min(quantity, i.stock) }
+              : i,
           ),
         });
       },

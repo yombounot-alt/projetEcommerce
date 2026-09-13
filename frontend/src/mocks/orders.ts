@@ -18,7 +18,15 @@ const pick = <T>(arr: readonly T[]): T => arr[Math.floor(rng() * arr.length)];
 const randInt = (min: number, max: number) => Math.floor(rng() * (max - min + 1)) + min;
 
 const statuses: OrderStatus[] = [
-  "pending", "paid", "processing", "shipped", "delivered", "delivered", "delivered", "cancelled", "refunded",
+  "pending",
+  "paid",
+  "processing",
+  "shipped",
+  "delivered",
+  "delivered",
+  "delivered",
+  "cancelled",
+  "refunded",
 ];
 const paymentMethods: PaymentMethod[] = ["card", "card", "card", "paypal", "bank_transfer"];
 const shippingMethods = ["Livraison standard", "Livraison express", "Point relais"];

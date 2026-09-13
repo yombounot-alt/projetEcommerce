@@ -1,4 +1,11 @@
-import { LayoutDashboardIcon, PackageIcon, SettingsIcon, ShoppingCartIcon, TagsIcon, UsersIcon } from "lucide-react";
+import {
+  LayoutDashboardIcon,
+  PackageIcon,
+  SettingsIcon,
+  ShoppingCartIcon,
+  TagsIcon,
+  UsersIcon,
+} from "lucide-react";
 import type { DashboardNavItem } from "@/components/layout/DashboardSidebar";
 import { ROUTES } from "@/constants/routes.constants";
 import { DashboardLayout } from "./DashboardLayout";

@@ -30,7 +30,12 @@ export function CheckoutStepper({ steps, currentIndex }: CheckoutStepperProps) {
             >
               {isCompleted ? <CheckIcon className="size-3.5" /> : index + 1}
             </span>
-            <span className={cn("text-sm font-medium", isActive ? "text-foreground" : "text-muted-foreground")}>
+            <span
+              className={cn(
+                "text-sm font-medium",
+                isActive ? "text-foreground" : "text-muted-foreground",
+              )}
+            >
               {step.label}
             </span>
             {index < steps.length - 1 && <span className="mx-1 h-px w-6 bg-border sm:w-10" />}

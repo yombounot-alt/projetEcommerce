@@ -1,6 +1,5 @@
 export const APP_NAME = "Luméra";
-export const APP_DESCRIPTION =
-  "Luméra — une expérience e-commerce premium, rapide et fiable.";
+export const APP_DESCRIPTION = "Luméra — une expérience e-commerce premium, rapide et fiable.";
 export const APP_URL = import.meta.env.VITE_APP_URL ?? "https://www.lumera.example";
 export const DEFAULT_CURRENCY = "GNF";
 export const DEFAULT_LOCALE = "fr-FR";

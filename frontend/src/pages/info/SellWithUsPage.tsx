@@ -35,8 +35,8 @@ export default function SellWithUsPage() {
           <CardContent className="space-y-4 p-6">
             <p className="text-sm font-medium text-foreground">Comment ça marche</p>
             <p className="text-sm text-muted-foreground">
-              Les espaces vendeurs sont activés manuellement par notre équipe. Créez d'abord un compte
-              client, puis contactez-nous pour que nous activions votre accès vendeur.
+              Les espaces vendeurs sont activés manuellement par notre équipe. Créez d'abord un
+              compte client, puis contactez-nous pour que nous activions votre accès vendeur.
             </p>
             <div className="flex flex-col gap-2">
               <Button asChild>

@@ -26,6 +26,21 @@ export interface ProductDimensions {
   unit: "cm" | "in";
 }
 
+export interface ProductVariantOption {
+  name: string;
+  values: string[];
+}
+
+export interface ProductVariant {
+  id: UUID;
+  sku: string;
+  attributes: Record<string, string>;
+  price?: number;
+  compareAtPrice?: number;
+  stock: number;
+  image?: string;
+}
+
 export interface ProductReview {
   id: UUID;
   productId: UUID;
@@ -62,36 +77,32 @@ export interface Product {
   tags: string[];
   isFeatured: boolean;
   isNew: boolean;
+  variantOptions: ProductVariantOption[];
+  variants: ProductVariant[];
   createdAt: ISODateString;
   updatedAt: ISODateString;
 }
 
-export interface ProductListItem
-  extends Pick<
-    Product,
-    | "id"
-    | "sku"
-    | "name"
-    | "slug"
-    | "price"
-    | "compareAtPrice"
-    | "currency"
-    | "images"
-    | "category"
-    | "stock"
-    | "status"
-    | "rating"
-    | "reviewCount"
-    | "isFeatured"
-    | "isNew"
-  > {}
+export interface ProductListItem extends Pick<
+  Product,
+  | "id"
+  | "sku"
+  | "name"
+  | "slug"
+  | "price"
+  | "compareAtPrice"
+  | "currency"
+  | "images"
+  | "category"
+  | "stock"
+  | "status"
+  | "rating"
+  | "reviewCount"
+  | "isFeatured"
+  | "isNew"
+> {}
 
-export type ProductSortOption =
-  | "relevance"
-  | "popularity"
-  | "price_asc"
-  | "price_desc"
-  | "newest";
+export type ProductSortOption = "relevance" | "popularity" | "price_asc" | "price_desc" | "newest";
 
 export interface ProductFilters {
   search?: string;

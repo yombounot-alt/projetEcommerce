@@ -3,7 +3,14 @@ import { StarIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
@@ -27,7 +34,10 @@ export function ReviewForm({ isSubmitting, onSubmit }: ReviewFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 rounded-xl border border-border p-4">
+      <form
+        onSubmit={form.handleSubmit(handleSubmit)}
+        className="space-y-4 rounded-xl border border-border p-4"
+      >
         <p className="text-sm font-medium text-foreground">Laisser un avis</p>
         <FormField
           control={form.control}
@@ -47,7 +57,9 @@ export function ReviewForm({ isSubmitting, onSubmit }: ReviewFormProps) {
                       <StarIcon
                         className={cn(
                           "size-6 transition-colors",
-                          value <= Number(field.value ?? 0) ? "fill-accent text-accent" : "fill-transparent text-border",
+                          value <= Number(field.value ?? 0)
+                            ? "fill-accent text-accent"
+                            : "fill-transparent text-border",
                         )}
                       />
                     </button>
@@ -64,7 +76,9 @@ export function ReviewForm({ isSubmitting, onSubmit }: ReviewFormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Titre</FormLabel>
-              <FormControl><Input placeholder="Résumez votre expérience" {...field} /></FormControl>
+              <FormControl>
+                <Input placeholder="Résumez votre expérience" {...field} />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -76,7 +90,11 @@ export function ReviewForm({ isSubmitting, onSubmit }: ReviewFormProps) {
             <FormItem>
               <FormLabel>Votre avis</FormLabel>
               <FormControl>
-                <Textarea rows={4} placeholder="Décrivez votre expérience avec ce produit…" {...field} />
+                <Textarea
+                  rows={4}
+                  placeholder="Décrivez votre expérience avec ce produit…"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

@@ -1,5 +1,6 @@
 import { useState, type MouseEvent } from "react";
 import { cn } from "@/lib/utils";
+import { optimizedImageUrl } from "@/utils/image";
 
 interface ProductGalleryProps {
   images: string[];
@@ -26,12 +27,18 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
         onMouseLeave={() => setZoomStyle(null)}
       >
         <img
-          src={activeImage}
+          src={optimizedImageUrl(activeImage, 900)}
           alt={productName}
+          decoding="async"
+          fetchPriority="high"
           className="size-full object-cover"
           style={
             zoomStyle
-              ? { transform: "scale(1.8)", transformOrigin: zoomStyle.backgroundPosition, transition: "transform 0.05s" }
+              ? {
+                  transform: "scale(1.8)",
+                  transformOrigin: zoomStyle.backgroundPosition,
+                  transition: "transform 0.05s",
+                }
               : { transition: "transform 0.2s" }
           }
         />
@@ -49,7 +56,13 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                 index === activeIndex ? "border-primary" : "border-transparent hover:border-border",
               )}
             >
-              <img src={image} alt={`${productName} vue ${index + 1}`} className="size-full object-cover" />
+              <img
+                src={optimizedImageUrl(image, 160)}
+                alt={`${productName} vue ${index + 1}`}
+                loading="lazy"
+                decoding="async"
+                className="size-full object-cover"
+              />
             </button>
           ))}
         </div>

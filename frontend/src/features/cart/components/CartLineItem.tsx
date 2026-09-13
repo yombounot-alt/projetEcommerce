@@ -6,26 +6,44 @@ import { ROUTES } from "@/constants/routes.constants";
 import { useCart } from "@/features/cart/api/useCart";
 import type { CartItem } from "@/types/order.types";
 import { formatPrice } from "@/utils/format";
+import { optimizedImageUrl } from "@/utils/image";
 
 export function CartLineItem({ item }: { item: CartItem }) {
   const { updateQuantity, removeItem } = useCart();
 
   return (
     <div className="flex gap-4 py-4">
-      <Link to={ROUTES.product(item.slug)} className="size-20 shrink-0 overflow-hidden rounded-lg bg-muted sm:size-24">
-        <img src={item.image} alt={item.name} className="size-full object-cover" />
+      <Link
+        to={ROUTES.product(item.slug)}
+        className="size-20 shrink-0 overflow-hidden rounded-lg bg-muted sm:size-24"
+      >
+        <img
+          src={optimizedImageUrl(item.image, 160)}
+          alt={item.name}
+          loading="lazy"
+          decoding="async"
+          className="size-full object-cover"
+        />
       </Link>
 
       <div className="flex flex-1 flex-col gap-2">
         <div className="flex items-start justify-between gap-2">
-          <Link to={ROUTES.product(item.slug)} className="text-sm font-medium text-foreground hover:underline">
-            {item.name}
-          </Link>
+          <div>
+            <Link
+              to={ROUTES.product(item.slug)}
+              className="text-sm font-medium text-foreground hover:underline"
+            >
+              {item.name}
+            </Link>
+            {item.variantLabel && (
+              <p className="text-xs text-muted-foreground">{item.variantLabel}</p>
+            )}
+          </div>
           <Button
             variant="ghost"
             size="icon"
             className="size-8 shrink-0 text-muted-foreground hover:text-destructive"
-            onClick={() => removeItem(item.productId)}
+            onClick={() => removeItem(item.productId, item.variantId)}
             aria-label="Retirer du panier"
           >
             <Trash2Icon className="size-4" />
@@ -40,7 +58,7 @@ export function CartLineItem({ item }: { item: CartItem }) {
               variant="ghost"
               size="icon"
               className="size-8"
-              onClick={() => updateQuantity(item.productId, item.quantity - 1)}
+              onClick={() => updateQuantity(item.productId, item.quantity - 1, item.variantId)}
               aria-label="Diminuer la quantité"
             >
               <MinusIcon className="size-3.5" />
@@ -50,7 +68,7 @@ export function CartLineItem({ item }: { item: CartItem }) {
               variant="ghost"
               size="icon"
               className="size-8"
-              onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+              onClick={() => updateQuantity(item.productId, item.quantity + 1, item.variantId)}
               disabled={item.quantity >= item.stock}
               aria-label="Augmenter la quantité"
             >

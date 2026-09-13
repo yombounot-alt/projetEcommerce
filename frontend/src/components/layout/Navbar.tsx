@@ -53,8 +53,18 @@ export function Navbar() {
         </div>
 
         <div className="ml-auto flex items-center gap-1 md:ml-0">
-          <IconLinkButton to={ROUTES.wishlist} icon={HeartIcon} label="Favoris" count={wishlistCount} />
-          <IconLinkButton to={ROUTES.cart} icon={ShoppingBagIcon} label="Panier" count={cartCount} />
+          <IconLinkButton
+            to={ROUTES.wishlist}
+            icon={HeartIcon}
+            label="Favoris"
+            count={wishlistCount}
+          />
+          <IconLinkButton
+            to={ROUTES.cart}
+            icon={ShoppingBagIcon}
+            label="Panier"
+            count={cartCount}
+          />
           <UserMenu />
         </div>
       </div>

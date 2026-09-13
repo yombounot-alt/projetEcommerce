@@ -8,6 +8,28 @@ const dimensionsSchema = z.object({
   unit: z.enum(["cm", "in"]).default("cm"),
 });
 
+const variantOptionSchema = z.object({
+  name: z.string().trim().min(1).max(50),
+  values: z.array(z.string().trim().min(1).max(50)).min(1),
+});
+
+const productVariantSchema = z.object({
+  // Present when updating an existing variant (preserves its _id so cart/order references
+  // stay valid); absent for a newly-added variant, which Mongoose then assigns one.
+  id: objectId.optional(),
+  sku: z
+    .string()
+    .trim()
+    .min(3)
+    .regex(/^[A-Za-z0-9-]+$/, "Le SKU ne peut contenir que des lettres, chiffres et tirets")
+    .transform((s) => s.toUpperCase()),
+  attributes: z.record(z.string().trim().min(1)),
+  price: z.coerce.number().positive().optional(),
+  compareAtPrice: z.coerce.number().positive().optional(),
+  availableStock: z.coerce.number().int().min(0),
+  image: z.string().url().optional(),
+});
+
 export const createProductSchema = z
   .object({
     name: z.string().trim().min(3).max(150),
@@ -32,6 +54,8 @@ export const createProductSchema = z
     tags: z.array(z.string().trim().toLowerCase()).optional().default([]),
     status: z.enum(["draft", "published", "archived"]).default("draft"),
     isFeatured: z.boolean().optional().default(false),
+    variantOptions: z.array(variantOptionSchema).optional().default([]),
+    variants: z.array(productVariantSchema).optional().default([]),
   })
   .refine((data) => !data.compareAtPrice || data.compareAtPrice > data.price, {
     message: "Le prix barré doit être supérieur au prix de vente",
@@ -57,6 +81,8 @@ export const updateProductSchema = z
     tags: z.array(z.string().trim().toLowerCase()).optional(),
     status: z.enum(["draft", "published", "archived"]).optional(),
     isFeatured: z.boolean().optional(),
+    variantOptions: z.array(variantOptionSchema).optional(),
+    variants: z.array(productVariantSchema).optional(),
   })
   .strict();
 

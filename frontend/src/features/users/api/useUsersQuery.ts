@@ -11,7 +11,9 @@ export function useUsersQuery(filters: UserListFilters) {
   });
 }
 
-export function useSellerCustomersQuery(filters: Pick<UserListFilters, "search" | "page" | "pageSize">) {
+export function useSellerCustomersQuery(
+  filters: Pick<UserListFilters, "search" | "page" | "pageSize">,
+) {
   return useQuery({
     queryKey: queryKeys.users.sellerCustomers(filters),
     queryFn: () => userService.listSellerCustomers(filters),
@@ -30,7 +32,8 @@ export function useUpdateUserRoleMutation() {
 export function useUpdateUserStatusMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, status }: { id: string; status: UserStatus }) => userService.updateStatus(id, status),
+    mutationFn: ({ id, status }: { id: string; status: UserStatus }) =>
+      userService.updateStatus(id, status),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.users.all }),
   });
 }

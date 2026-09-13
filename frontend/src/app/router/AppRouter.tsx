@@ -45,6 +45,7 @@ const AdminOrdersPage = lazy(() => import("@/pages/admin/AdminOrdersPage"));
 const AdminOrderDetailsPage = lazy(() => import("@/pages/admin/AdminOrderDetailsPage"));
 const AdminUsersPage = lazy(() => import("@/pages/admin/AdminUsersPage"));
 const AdminCategoriesPage = lazy(() => import("@/pages/admin/AdminCategoriesPage"));
+const AdminCouponsPage = lazy(() => import("@/pages/admin/AdminCouponsPage"));
 const AdminSettingsPage = lazy(() => import("@/pages/admin/AdminSettingsPage"));
 
 const SellerDashboardPage = lazy(() => import("@/pages/seller/SellerDashboardPage"));
@@ -75,23 +76,43 @@ export function AppRouter() {
 
           <Route
             path={ROUTES.profile}
-            element={<ProtectedRoute><ProfilePage /></ProtectedRoute>}
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            }
           />
           <Route
             path={ROUTES.orders}
-            element={<ProtectedRoute><OrdersPage /></ProtectedRoute>}
+            element={
+              <ProtectedRoute>
+                <OrdersPage />
+              </ProtectedRoute>
+            }
           />
           <Route
             path="/orders/:id"
-            element={<ProtectedRoute><OrderDetailsPage /></ProtectedRoute>}
+            element={
+              <ProtectedRoute>
+                <OrderDetailsPage />
+              </ProtectedRoute>
+            }
           />
           <Route
             path={ROUTES.wishlist}
-            element={<ProtectedRoute><WishlistPage /></ProtectedRoute>}
+            element={
+              <ProtectedRoute>
+                <WishlistPage />
+              </ProtectedRoute>
+            }
           />
           <Route
             path={ROUTES.addresses}
-            element={<ProtectedRoute><AddressesPage /></ProtectedRoute>}
+            element={
+              <ProtectedRoute>
+                <AddressesPage />
+              </ProtectedRoute>
+            }
           />
 
           <Route path={ROUTES.about} element={<AboutPage />} />
@@ -109,17 +130,49 @@ export function AppRouter() {
         </Route>
 
         <Route element={<AuthLayout />}>
-          <Route path={ROUTES.login} element={<GuestRoute><LoginPage /></GuestRoute>} />
-          <Route path={ROUTES.register} element={<GuestRoute><RegisterPage /></GuestRoute>} />
-          <Route path={ROUTES.forgotPassword} element={<GuestRoute><ForgotPasswordPage /></GuestRoute>} />
-          <Route path={ROUTES.resetPassword} element={<GuestRoute><ResetPasswordPage /></GuestRoute>} />
+          <Route
+            path={ROUTES.login}
+            element={
+              <GuestRoute>
+                <LoginPage />
+              </GuestRoute>
+            }
+          />
+          <Route
+            path={ROUTES.register}
+            element={
+              <GuestRoute>
+                <RegisterPage />
+              </GuestRoute>
+            }
+          />
+          <Route
+            path={ROUTES.forgotPassword}
+            element={
+              <GuestRoute>
+                <ForgotPasswordPage />
+              </GuestRoute>
+            }
+          />
+          <Route
+            path={ROUTES.resetPassword}
+            element={
+              <GuestRoute>
+                <ResetPasswordPage />
+              </GuestRoute>
+            }
+          />
           {/* Pas de GuestRoute ici : un client déjà connecté doit aussi pouvoir ouvrir son lien de vérification. */}
           <Route path={ROUTES.verifyEmail} element={<VerifyEmailPage />} />
         </Route>
 
         <Route
           path={ROUTES.admin.root}
-          element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout /></ProtectedRoute>}
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
         >
           <Route index element={<AdminDashboardPage />} />
           <Route path="products" element={<AdminProductsPage />} />
@@ -129,12 +182,17 @@ export function AppRouter() {
           <Route path="orders/:id" element={<AdminOrderDetailsPage />} />
           <Route path="users" element={<AdminUsersPage />} />
           <Route path="categories" element={<AdminCategoriesPage />} />
+          <Route path="coupons" element={<AdminCouponsPage />} />
           <Route path="settings" element={<AdminSettingsPage />} />
         </Route>
 
         <Route
           path={ROUTES.seller.root}
-          element={<ProtectedRoute allowedRoles={["admin", "seller"]}><SellerLayout /></ProtectedRoute>}
+          element={
+            <ProtectedRoute allowedRoles={["admin", "seller"]}>
+              <SellerLayout />
+            </ProtectedRoute>
+          }
         >
           <Route index element={<SellerDashboardPage />} />
           <Route path="products" element={<SellerProductsPage />} />

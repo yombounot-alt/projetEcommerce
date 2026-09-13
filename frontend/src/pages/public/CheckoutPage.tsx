@@ -12,7 +12,12 @@ import { CustomerInfoStep } from "@/features/checkout/components/CustomerInfoSte
 import { PaymentStep } from "@/features/checkout/components/PaymentStep";
 import { ShippingAddressStep } from "@/features/checkout/components/ShippingAddressStep";
 import { ShippingMethodStep } from "@/features/checkout/components/ShippingMethodStep";
-import type { CustomerInfoValues, PaymentMethodValues, ShippingAddressValues, ShippingMethodValues } from "@/schemas/checkout.schema";
+import type {
+  CustomerInfoValues,
+  PaymentMethodValues,
+  ShippingAddressValues,
+  ShippingMethodValues,
+} from "@/schemas/checkout.schema";
 import { useAuthStore } from "@/store/authStore";
 import { ApiError } from "@/types/api.types";
 
@@ -33,12 +38,23 @@ export default function CheckoutPage() {
 
   const [stepIndex, setStepIndex] = useState(0);
   const [customerInfo, setCustomerInfo] = useState<CustomerInfoValues>({
-    email: user?.email ?? "", firstName: user?.firstName ?? "", lastName: user?.lastName ?? "", phone: "",
+    email: user?.email ?? "",
+    firstName: user?.firstName ?? "",
+    lastName: user?.lastName ?? "",
+    phone: "",
   });
   const [shippingAddress, setShippingAddress] = useState<ShippingAddressValues>({
-    fullName: "", line1: "", city: "", postalCode: "", country: "France", phone: "", saveAddress: false,
+    fullName: "",
+    line1: "",
+    city: "",
+    postalCode: "",
+    country: "France",
+    phone: "",
+    saveAddress: false,
   });
-  const [shippingMethod, setShippingMethod] = useState<ShippingMethodValues>({ methodId: "standard" });
+  const [shippingMethod, setShippingMethod] = useState<ShippingMethodValues>({
+    methodId: "standard",
+  });
   const [shippingCost, setShippingCost] = useState(0);
 
   // isCartLoading guards against a false-positive redirect: on a fresh page load the
@@ -51,7 +67,11 @@ export default function CheckoutPage() {
   function handlePaymentSubmit(payment: PaymentMethodValues) {
     createOrder.mutate(
       {
-        items: items.map((item) => ({ productId: item.productId, quantity: item.quantity })),
+        items: items.map((item) => ({
+          productId: item.productId,
+          variantId: item.variantId,
+          quantity: item.quantity,
+        })),
         shippingAddress: {
           fullName: shippingAddress.fullName,
           line1: shippingAddress.line1,
@@ -110,7 +130,9 @@ export default function CheckoutPage() {
     <div className="container-page py-10">
       <Seo title="Paiement" canonicalPath={ROUTES.checkout} noIndex />
 
-      <h1 className="mb-6 font-heading text-3xl font-semibold text-foreground">Finaliser ma commande</h1>
+      <h1 className="mb-6 font-heading text-3xl font-semibold text-foreground">
+        Finaliser ma commande
+      </h1>
       <CheckoutStepper steps={STEPS} currentIndex={stepIndex} />
 
       <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_22rem]">

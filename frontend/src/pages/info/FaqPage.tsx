@@ -1,4 +1,9 @@
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Seo } from "@/components/common/Seo";
 import { FREE_SHIPPING_THRESHOLD } from "@/constants/app.constants";
@@ -17,15 +22,18 @@ const FAQ_ITEMS = [
   },
   {
     question: "Comment suivre ma commande ?",
-    answer: "Rendez-vous dans votre espace « Mes commandes » une fois connecté : le statut y est mis à jour en temps réel.",
+    answer:
+      "Rendez-vous dans votre espace « Mes commandes » une fois connecté : le statut y est mis à jour en temps réel.",
   },
   {
     question: "Puis-je retourner un produit ?",
-    answer: "Oui, sous 14 jours à compter de la réception, dans son emballage d'origine. Voir notre page Livraison & retours pour le détail.",
+    answer:
+      "Oui, sous 14 jours à compter de la réception, dans son emballage d'origine. Voir notre page Livraison & retours pour le détail.",
   },
   {
     question: "Comment devenir vendeur sur Luméra ?",
-    answer: "Créez un compte client puis contactez notre équipe : nous activons manuellement les espaces vendeurs après vérification.",
+    answer:
+      "Créez un compte client puis contactez notre équipe : nous activons manuellement les espaces vendeurs après vérification.",
   },
 ];
 
@@ -33,7 +41,10 @@ export default function FaqPage() {
   return (
     <div className="container-page py-10">
       <Seo title="FAQ" canonicalPath={ROUTES.help.faq} />
-      <PageHeader title="Questions fréquentes" description="Les réponses aux questions les plus courantes." />
+      <PageHeader
+        title="Questions fréquentes"
+        description="Les réponses aux questions les plus courantes."
+      />
 
       <Accordion type="single" collapsible className="max-w-2xl">
         {FAQ_ITEMS.map((item) => (

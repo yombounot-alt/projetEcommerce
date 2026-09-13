@@ -8,7 +8,12 @@ export const getCart = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const addItem = catchAsync(async (req: Request, res: Response) => {
-  const cart = await cartService.addCartItem(req.user!.id, req.body.productId, req.body.quantity);
+  const cart = await cartService.addCartItem(
+    req.user!.id,
+    req.body.productId,
+    req.body.quantity,
+    req.body.variantId,
+  );
   res.status(201).json(cart);
 });
 
@@ -17,12 +22,17 @@ export const updateItem = catchAsync(async (req: Request, res: Response) => {
     req.user!.id,
     req.params.productId,
     req.body.quantity,
+    req.body.variantId,
   );
   res.status(200).json(cart);
 });
 
 export const removeItem = catchAsync(async (req: Request, res: Response) => {
-  const cart = await cartService.removeCartItem(req.user!.id, req.params.productId);
+  const cart = await cartService.removeCartItem(
+    req.user!.id,
+    req.params.productId,
+    req.query.variantId as string | undefined,
+  );
   res.status(200).json(cart);
 });
 

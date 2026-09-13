@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Disallow: /cart
+Disallow: /checkout
+Disallow: /profile
+Disallow: /orders
+Disallow: /wishlist
+Disallow: /addresses
+Disallow: /admin
+Disallow: /seller
+
+Sitemap: https://lumera.example/sitemap.xml

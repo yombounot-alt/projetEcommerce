@@ -14,14 +14,21 @@ export default function WishlistPage() {
   return (
     <div className="container-page py-10">
       <Seo title="Mes favoris" canonicalPath={ROUTES.wishlist} noIndex />
-      <PageHeader title="Mes favoris" description="Retrouvez les produits que vous avez ajoutés à vos favoris." />
+      <PageHeader
+        title="Mes favoris"
+        description="Retrouvez les produits que vous avez ajoutés à vos favoris."
+      />
 
       {items.length === 0 ? (
         <EmptyState
           icon={HeartIcon}
           title="Aucun favori pour le moment"
           description="Ajoutez des produits à vos favoris pour les retrouver facilement."
-          action={<Button asChild><Link to={ROUTES.shop}>Découvrir la boutique</Link></Button>}
+          action={
+            <Button asChild>
+              <Link to={ROUTES.shop}>Découvrir la boutique</Link>
+            </Button>
+          }
         />
       ) : (
         <ProductGrid products={items} />

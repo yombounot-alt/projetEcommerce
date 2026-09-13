@@ -5,7 +5,14 @@ import { toast } from "sonner";
 import { Seo } from "@/components/common/Seo";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { ROUTES } from "@/constants/routes.constants";
 import { useRegisterMutation } from "@/features/auth/api/useAuthMutations";
@@ -18,7 +25,11 @@ export default function RegisterPage() {
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      firstName: "", lastName: "", email: "", password: "", confirmPassword: "",
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
       acceptTerms: false as unknown as true,
     },
   });
@@ -42,7 +53,10 @@ export default function RegisterPage() {
         <h1 className="font-heading text-2xl font-semibold text-foreground">Créer votre compte</h1>
         <p className="text-sm text-muted-foreground">
           Déjà inscrit ?{" "}
-          <Link to={ROUTES.login} className="font-medium text-foreground underline underline-offset-4">
+          <Link
+            to={ROUTES.login}
+            className="font-medium text-foreground underline underline-offset-4"
+          >
             Se connecter
           </Link>
         </p>
@@ -57,7 +71,9 @@ export default function RegisterPage() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Prénom</FormLabel>
-                  <FormControl><Input autoComplete="given-name" {...field} /></FormControl>
+                  <FormControl>
+                    <Input autoComplete="given-name" {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -68,7 +84,9 @@ export default function RegisterPage() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Nom</FormLabel>
-                  <FormControl><Input autoComplete="family-name" {...field} /></FormControl>
+                  <FormControl>
+                    <Input autoComplete="family-name" {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -81,7 +99,14 @@ export default function RegisterPage() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Email</FormLabel>
-                <FormControl><Input type="email" autoComplete="email" placeholder="vous@exemple.com" {...field} /></FormControl>
+                <FormControl>
+                  <Input
+                    type="email"
+                    autoComplete="email"
+                    placeholder="vous@exemple.com"
+                    {...field}
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -93,7 +118,14 @@ export default function RegisterPage() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Mot de passe</FormLabel>
-                <FormControl><Input type="password" autoComplete="new-password" placeholder="••••••••" {...field} /></FormControl>
+                <FormControl>
+                  <Input
+                    type="password"
+                    autoComplete="new-password"
+                    placeholder="••••••••"
+                    {...field}
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -105,7 +137,14 @@ export default function RegisterPage() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Confirmer le mot de passe</FormLabel>
-                <FormControl><Input type="password" autoComplete="new-password" placeholder="••••••••" {...field} /></FormControl>
+                <FormControl>
+                  <Input
+                    type="password"
+                    autoComplete="new-password"
+                    placeholder="••••••••"
+                    {...field}
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -121,9 +160,14 @@ export default function RegisterPage() {
                 </FormControl>
                 <FormLabel className="font-normal leading-snug">
                   J'accepte les{" "}
-                  <Link to="/legal/terms" className="underline underline-offset-4">conditions générales</Link>{" "}
+                  <Link to="/legal/terms" className="underline underline-offset-4">
+                    conditions générales
+                  </Link>{" "}
                   et la{" "}
-                  <Link to="/legal/privacy" className="underline underline-offset-4">politique de confidentialité</Link>.
+                  <Link to="/legal/privacy" className="underline underline-offset-4">
+                    politique de confidentialité
+                  </Link>
+                  .
                 </FormLabel>
                 <FormMessage />
               </FormItem>

@@ -10,6 +10,24 @@ export default defineConfig({
       "@": path.resolve(import.meta.dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        // Isole les dépendances "socle" (déjà chargées eagerly par main.tsx quelle que soit
+        // la route) dans des chunks nommés à hash stable : un déploiement qui ne touche qu'au
+        // code applicatif n'invalide plus ce cache navigateur pour les visiteurs récurrents.
+        // Ne PAS y ajouter recharts/d3 : ils ne sont utilisés que par des routes admin/vendeur
+        // chargées en dynamic import — les regrouper ici risquerait de les rendre eager.
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return undefined;
+          if (id.includes("react-router")) return "vendor-router";
+          if (id.includes("@tanstack")) return "vendor-query";
+          if (/[\\/]react(-dom)?[\\/]|\/scheduler\//.test(id)) return "vendor-react";
+          return undefined;
+        },
+      },
+    },
+  },
   server: {
     proxy: {
       "/api": {

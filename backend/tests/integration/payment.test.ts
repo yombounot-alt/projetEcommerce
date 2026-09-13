@@ -260,7 +260,10 @@ describe("Payments", () => {
     it("rejects reconciliation from a non-admin", async () => {
       const seller = await createUser("seller");
       const customer = await createUser("customer");
-      const { payment } = await createStuckGatewayPayment(customer.accessToken, String(seller.user._id));
+      const { payment } = await createStuckGatewayPayment(
+        customer.accessToken,
+        String(seller.user._id),
+      );
 
       const res = await request(app)
         .post(`/api/v1/payments/${payment.id}/reconcile`)
@@ -274,7 +277,10 @@ describe("Payments", () => {
       const seller = await createUser("seller");
       const admin = await createUser("admin");
       const customer = await createUser("customer");
-      const { payment } = await createStuckGatewayPayment(customer.accessToken, String(seller.user._id));
+      const { payment } = await createStuckGatewayPayment(
+        customer.accessToken,
+        String(seller.user._id),
+      );
 
       await request(app)
         .post(`/api/v1/payments/${payment.id}/reconcile`)
@@ -297,7 +303,7 @@ describe("Payments", () => {
       const product = await createProduct(String(seller.user._id));
       const orderRes = await createPendingOrder(customer.accessToken, String(product._id));
 
-      const staleDate = new Date(Date.now() - 61 * 60_000); // older than the 60-minute default
+      const staleDate = new Date(Date.now() - 25 * 60 * 60_000); // older than the 24h default
       await Payment.create({
         order: orderRes.body.id,
         provider: "chapchapay",

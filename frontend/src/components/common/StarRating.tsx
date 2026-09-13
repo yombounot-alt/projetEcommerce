@@ -9,13 +9,19 @@ interface StarRatingProps {
 
 export function StarRating({ rating, size = 16, className }: StarRatingProps) {
   return (
-    <div className={cn("flex items-center gap-0.5", className)} role="img" aria-label={`Note : ${rating} sur 5`}>
+    <div
+      className={cn("flex items-center gap-0.5", className)}
+      role="img"
+      aria-label={`Note : ${rating} sur 5`}
+    >
       {Array.from({ length: 5 }).map((_, index) => (
         <StarIcon
           key={index}
           width={size}
           height={size}
-          className={index < Math.round(rating) ? "fill-accent text-accent" : "fill-transparent text-border"}
+          className={
+            index < Math.round(rating) ? "fill-accent text-accent" : "fill-transparent text-border"
+          }
         />
       ))}
     </div>

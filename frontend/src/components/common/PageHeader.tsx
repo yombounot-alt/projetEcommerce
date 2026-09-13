@@ -9,9 +9,20 @@ interface PageHeaderProps {
   className?: string;
 }
 
-export function PageHeader({ title, description, actions, breadcrumb, className }: PageHeaderProps) {
+export function PageHeader({
+  title,
+  description,
+  actions,
+  breadcrumb,
+  className,
+}: PageHeaderProps) {
   return (
-    <div className={cn("flex flex-col gap-4 pb-6 sm:flex-row sm:items-end sm:justify-between", className)}>
+    <div
+      className={cn(
+        "flex flex-col gap-4 pb-6 sm:flex-row sm:items-end sm:justify-between",
+        className,
+      )}
+    >
       <div className="space-y-1.5">
         {breadcrumb}
         <h1 className="font-heading text-2xl font-semibold text-foreground sm:text-3xl">{title}</h1>

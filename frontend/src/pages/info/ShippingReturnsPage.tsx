@@ -1,7 +1,11 @@
 import { ContentSections } from "@/components/common/ContentSections";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Seo } from "@/components/common/Seo";
-import { EXPRESS_SHIPPING_COST, FREE_SHIPPING_THRESHOLD, STANDARD_SHIPPING_COST } from "@/constants/app.constants";
+import {
+  EXPRESS_SHIPPING_COST,
+  FREE_SHIPPING_THRESHOLD,
+  STANDARD_SHIPPING_COST,
+} from "@/constants/app.constants";
 import { ROUTES } from "@/constants/routes.constants";
 import { formatPrice } from "@/utils/format";
 

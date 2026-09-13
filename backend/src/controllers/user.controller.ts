@@ -22,7 +22,7 @@ export const getById = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const updateRole = catchAsync(async (req: Request, res: Response) => {
-  const user = await userService.updateUserRole(req.params.id, req.body.role);
+  const user = await userService.updateUserRole(req.params.id, req.body.role, req.user!.id);
   await recordAudit({
     actorId: req.user!.id,
     action: "USER_ROLE_CHANGED",

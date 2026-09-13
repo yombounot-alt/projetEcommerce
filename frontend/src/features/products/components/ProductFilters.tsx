@@ -46,10 +46,15 @@ export function ProductFilters({ filters, onChange, onReset }: ProductFiltersPro
           </label>
           {isLoading && <p className="text-sm text-muted-foreground">Chargement…</p>}
           {categories?.map((category) => (
-            <label key={category.id} className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground">
+            <label
+              key={category.id}
+              className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground"
+            >
               <Checkbox
                 checked={filters.category === category.slug}
-                onCheckedChange={(checked) => onChange({ category: checked ? category.slug : undefined })}
+                onCheckedChange={(checked) =>
+                  onChange({ category: checked ? category.slug : undefined })
+                }
               />
               {category.name}
               <span className="ml-auto text-xs">({category.productCount})</span>
@@ -64,7 +69,9 @@ export function ProductFilters({ filters, onChange, onReset }: ProductFiltersPro
         <p className="text-sm font-medium text-foreground">Prix</p>
         <div className="flex items-center gap-2">
           <div className="flex-1 space-y-1">
-            <Label htmlFor="min-price" className="text-xs text-muted-foreground">Min</Label>
+            <Label htmlFor="min-price" className="text-xs text-muted-foreground">
+              Min
+            </Label>
             <Input
               id="min-price"
               type="number"
@@ -76,7 +83,9 @@ export function ProductFilters({ filters, onChange, onReset }: ProductFiltersPro
             />
           </div>
           <div className="flex-1 space-y-1">
-            <Label htmlFor="max-price" className="text-xs text-muted-foreground">Max</Label>
+            <Label htmlFor="max-price" className="text-xs text-muted-foreground">
+              Max
+            </Label>
             <Input
               id="max-price"
               type="number"

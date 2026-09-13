@@ -14,6 +14,7 @@ import { ROUTES } from "@/constants/routes.constants";
 import { useDeleteProductMutation } from "@/features/products/api/useProductMutations";
 import { useProductsQuery } from "@/features/products/api/useProductsQuery";
 import { formatPrice } from "@/utils/format";
+import { optimizedImageUrl } from "@/utils/image";
 import type { ProductListItem } from "@/types/product.types";
 
 export default function AdminProductsPage() {
@@ -35,7 +36,13 @@ export default function AdminProductsPage() {
       header: "Produit",
       render: (product) => (
         <div className="flex items-center gap-3">
-          <img src={product.images[0]} alt={product.name} className="size-10 rounded-md object-cover" />
+          <img
+            src={optimizedImageUrl(product.images[0], 80)}
+            alt={product.name}
+            loading="lazy"
+            decoding="async"
+            className="size-10 rounded-md object-cover"
+          />
           <div>
             <p className="font-medium text-foreground">{product.name}</p>
             <p className="text-xs text-muted-foreground">{product.sku}</p>
@@ -57,7 +64,11 @@ export default function AdminProductsPage() {
     {
       key: "status",
       header: "Statut",
-      render: (p) => <Badge variant={p.status === "published" ? "success" : "outline"}>{p.status === "published" ? "Publié" : "Brouillon"}</Badge>,
+      render: (p) => (
+        <Badge variant={p.status === "published" ? "success" : "outline"}>
+          {p.status === "published" ? "Publié" : "Brouillon"}
+        </Badge>
+      ),
     },
     {
       key: "actions",
@@ -72,7 +83,12 @@ export default function AdminProductsPage() {
           </Button>
           <ConfirmDialog
             trigger={
-              <Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-destructive" aria-label="Supprimer">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-8 text-muted-foreground hover:text-destructive"
+                aria-label="Supprimer"
+              >
                 <Trash2Icon className="size-4" />
               </Button>
             }
@@ -94,14 +110,29 @@ export default function AdminProductsPage() {
         description="Gérez le catalogue produits de la plateforme."
         actions={
           <Button asChild>
-            <Link to={ROUTES.admin.productNew}><PlusIcon /> Nouveau produit</Link>
+            <Link to={ROUTES.admin.productNew}>
+              <PlusIcon /> Nouveau produit
+            </Link>
           </Button>
         }
       />
 
-      <SearchBar value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Rechercher un produit…" className="max-w-sm" />
+      <SearchBar
+        value={search}
+        onChange={(v) => {
+          setSearch(v);
+          setPage(1);
+        }}
+        placeholder="Rechercher un produit…"
+        className="max-w-sm"
+      />
 
-      <DataTable columns={columns} data={data?.items ?? []} rowKey={(p) => p.id} isLoading={isLoading} />
+      <DataTable
+        columns={columns}
+        data={data?.items ?? []}
+        rowKey={(p) => p.id}
+        isLoading={isLoading}
+      />
 
       {data && <PaginationControl pagination={data.pagination} onPageChange={setPage} />}
     </div>

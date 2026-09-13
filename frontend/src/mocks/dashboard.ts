@@ -61,10 +61,30 @@ export function getDashboardOverview(): DashboardOverview {
 
   return {
     kpis: [
-      { label: "Chiffre d'affaires", value: Number(totalRevenue.toFixed(2)), previousValue: Number((totalRevenue * 0.88).toFixed(2)), format: "currency" },
-      { label: "Commandes", value: totalOrders, previousValue: Math.round(totalOrders * 0.92), format: "number" },
-      { label: "Clients actifs", value: totalCustomers, previousValue: Math.round(totalCustomers * 0.95), format: "number" },
-      { label: "Panier moyen", value: Number(avgOrderValue.toFixed(2)), previousValue: Number((avgOrderValue * 0.97).toFixed(2)), format: "currency" },
+      {
+        label: "Chiffre d'affaires",
+        value: Number(totalRevenue.toFixed(2)),
+        previousValue: Number((totalRevenue * 0.88).toFixed(2)),
+        format: "currency",
+      },
+      {
+        label: "Commandes",
+        value: totalOrders,
+        previousValue: Math.round(totalOrders * 0.92),
+        format: "number",
+      },
+      {
+        label: "Clients actifs",
+        value: totalCustomers,
+        previousValue: Math.round(totalCustomers * 0.95),
+        format: "number",
+      },
+      {
+        label: "Panier moyen",
+        value: Number(avgOrderValue.toFixed(2)),
+        previousValue: Number((avgOrderValue * 0.97).toFixed(2)),
+        format: "currency",
+      },
     ],
     revenueSeries: last30,
     topProducts: buildTopProducts(),

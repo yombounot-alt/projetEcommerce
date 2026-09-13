@@ -6,13 +6,13 @@ import { ROUTES } from "@/constants/routes.constants";
 const SECTIONS = [
   {
     heading: "Éditeur du site",
-    paragraphs: [
-      "Luméra — Enta Marché, Commune de Tombolia, Conakry, Rép. de Guinée. Contact : yombounot@gmail.com.",
-    ],
+    paragraphs: ["Luméra — Conakry, Guinée. Contact : support@lumera.example."],
   },
   {
     heading: "Hébergement",
-    paragraphs: ["Le site est hébergé par un prestataire cloud tiers, dont les coordonnées sont disponibles sur demande."],
+    paragraphs: [
+      "Le site est hébergé par un prestataire cloud tiers, dont les coordonnées sont disponibles sur demande.",
+    ],
   },
   {
     heading: "Propriété intellectuelle",

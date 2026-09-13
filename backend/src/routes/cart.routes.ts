@@ -6,6 +6,7 @@ import {
   addCartItemSchema,
   updateCartItemSchema,
   cartItemParamsSchema,
+  cartItemQuerySchema,
 } from "../validators/cart.validator";
 
 const router = Router();
@@ -21,7 +22,7 @@ router.patch(
 );
 router.delete(
   "/items/:productId",
-  validate({ params: cartItemParamsSchema }),
+  validate({ params: cartItemParamsSchema, query: cartItemQuerySchema }),
   cartController.removeItem,
 );
 router.delete("/", cartController.clear);

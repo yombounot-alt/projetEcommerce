@@ -2,6 +2,7 @@ import { ImagePlusIcon, Loader2Icon, XIcon } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { uploadService } from "@/api/services/upload.service";
+import { optimizedImageUrl } from "@/utils/image";
 
 interface ImageUploadFieldProps {
   images: string[];
@@ -19,7 +20,9 @@ export function ImageUploadField({ images, onChange }: ImageUploadFieldProps) {
       const urls = await uploadService.uploadImages(Array.from(fileList));
       onChange([...images, ...urls]);
     } catch {
-      toast.error("Échec de l'envoi de l'image. Formats acceptés : JPEG, PNG, WEBP, AVIF (5 Mo max).");
+      toast.error(
+        "Échec de l'envoi de l'image. Formats acceptés : JPEG, PNG, WEBP, AVIF (5 Mo max).",
+      );
     } finally {
       setIsUploading(false);
       if (inputRef.current) inputRef.current.value = "";
@@ -38,7 +41,13 @@ export function ImageUploadField({ images, onChange }: ImageUploadFieldProps) {
             key={url}
             className="group relative aspect-square overflow-hidden rounded-lg border border-border bg-muted"
           >
-            <img src={url} alt="" className="size-full object-cover" />
+            <img
+              src={optimizedImageUrl(url, 200)}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              className="size-full object-cover"
+            />
             <button
               type="button"
               onClick={() => removeAt(index)}
@@ -56,7 +65,11 @@ export function ImageUploadField({ images, onChange }: ImageUploadFieldProps) {
           disabled={isUploading}
           className="flex aspect-square flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-input text-muted-foreground transition-colors hover:border-primary hover:text-primary disabled:opacity-50"
         >
-          {isUploading ? <Loader2Icon className="size-5 animate-spin" /> : <ImagePlusIcon className="size-5" />}
+          {isUploading ? (
+            <Loader2Icon className="size-5 animate-spin" />
+          ) : (
+            <ImagePlusIcon className="size-5" />
+          )}
           <span className="text-xs">{isUploading ? "Envoi…" : "Ajouter"}</span>
         </button>
       </div>

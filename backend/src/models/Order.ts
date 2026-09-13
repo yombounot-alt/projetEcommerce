@@ -21,6 +21,10 @@ export interface IOrderAddress {
 export interface IOrderItem {
   _id: Types.ObjectId;
   product: Types.ObjectId;
+  variant?: Types.ObjectId;
+  /** Snapshot of the variant's attributes at order time (e.g. "M / Rouge") — survives the
+   *  variant later being edited or removed from the product, same principle as productName. */
+  variantLabel?: string;
   seller: Types.ObjectId;
   productName: string;
   productImage: string;
@@ -61,6 +65,7 @@ export interface IOrder extends Document {
   notes?: string;
   cancelledReason?: string;
   ownerNotifiedAt?: Date;
+  customerConfirmationSentAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -82,6 +87,8 @@ const orderAddressSchema = new Schema<IOrderAddress>(
 
 const orderItemSchema = new Schema<IOrderItem>({
   product: { type: Schema.Types.ObjectId, ref: "Product", required: true },
+  variant: { type: Schema.Types.ObjectId },
+  variantLabel: { type: String },
   seller: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
   productName: { type: String, required: true },
   productImage: { type: String, required: true },
@@ -145,6 +152,8 @@ const orderSchema = new Schema<IOrder>(
     // webhook): set atomically via findOneAndUpdate before the email is sent, see
     // orderNotification.service.ts.
     ownerNotifiedAt: { type: Date },
+    // Same guard, for the customer-facing order confirmation email.
+    customerConfirmationSentAt: { type: Date },
   },
   { timestamps: true },
 );

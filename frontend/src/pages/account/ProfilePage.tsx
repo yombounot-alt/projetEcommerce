@@ -7,7 +7,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { ROUTES } from "@/constants/routes.constants";
 import { useUpdateProfileMutation } from "@/features/auth/api/useAuthMutations";
@@ -45,91 +52,111 @@ export default function ProfilePage() {
       <Seo title="Mon profil" canonicalPath={ROUTES.profile} noIndex />
       <PageHeader title="Mon profil" description="Gérez vos informations personnelles." />
 
-      {!user.isVerified && <div className="mb-6"><EmailVerificationBanner /></div>}
+      {!user.isVerified && (
+        <div className="mb-6">
+          <EmailVerificationBanner />
+        </div>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-[18rem_1fr]">
         <Card>
           <CardContent className="flex flex-col items-center gap-3 p-6 text-center">
             <Avatar className="size-20">
               <AvatarImage src={user.avatarUrl} alt={user.firstName} />
-              <AvatarFallback className="text-xl">{getInitials(user.firstName, user.lastName)}</AvatarFallback>
+              <AvatarFallback className="text-xl">
+                {getInitials(user.firstName, user.lastName)}
+              </AvatarFallback>
             </Avatar>
             <div>
-              <p className="font-heading text-lg font-semibold text-foreground">{user.firstName} {user.lastName}</p>
+              <p className="font-heading text-lg font-semibold text-foreground">
+                {user.firstName} {user.lastName}
+              </p>
               <p className="text-sm text-muted-foreground">{user.email}</p>
             </div>
-            <Badge variant="secondary" className="capitalize">{user.role}</Badge>
+            <Badge variant="secondary" className="capitalize">
+              {user.role}
+            </Badge>
           </CardContent>
         </Card>
 
         <div className="space-y-6">
-        <Card>
-          <CardContent className="p-6">
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <div className="grid grid-cols-2 gap-3">
+          <Card>
+            <CardContent className="p-6">
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <FormField
+                      control={form.control}
+                      name="firstName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Prénom</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="lastName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nom</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                   <FormField
                     control={form.control}
-                    name="firstName"
+                    name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Prénom</FormLabel>
-                        <FormControl><Input {...field} /></FormControl>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input type="email" {...field} />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                   <FormField
                     control={form.control}
-                    name="lastName"
+                    name="phone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Nom</FormLabel>
-                        <FormControl><Input {...field} /></FormControl>
+                        <FormLabel>Téléphone</FormLabel>
+                        <FormControl>
+                          <Input type="tel" {...field} />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                </div>
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl><Input type="email" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Téléphone</FormLabel>
-                      <FormControl><Input type="tel" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button type="submit" disabled={updateProfile.isPending}>
-                  {updateProfile.isPending ? "Enregistrement…" : "Enregistrer les modifications"}
-                </Button>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
+                  <Button type="submit" disabled={updateProfile.isPending}>
+                    {updateProfile.isPending ? "Enregistrement…" : "Enregistrer les modifications"}
+                  </Button>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardContent className="space-y-4 p-6">
-            <div>
-              <p className="text-sm font-medium text-foreground">Sécurité</p>
-              <p className="text-xs text-muted-foreground">Changez votre mot de passe régulièrement pour protéger votre compte.</p>
-            </div>
-            <ChangePasswordForm />
-          </CardContent>
-        </Card>
+          <Card>
+            <CardContent className="space-y-4 p-6">
+              <div>
+                <p className="text-sm font-medium text-foreground">Sécurité</p>
+                <p className="text-xs text-muted-foreground">
+                  Changez votre mot de passe régulièrement pour protéger votre compte.
+                </p>
+              </div>
+              <ChangePasswordForm />
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

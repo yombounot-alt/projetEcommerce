@@ -1,5 +1,6 @@
 import type { OrderListFilters } from "@/api/services/order.service";
 import type { UserListFilters } from "@/api/services/user.service";
+import type { CouponListFilters } from "@/api/services/coupon.service";
 import type { ProductFilters } from "@/types/product.types";
 
 /**
@@ -52,5 +53,9 @@ export const queryKeys = {
   },
   settings: {
     all: ["settings"] as const,
+  },
+  coupons: {
+    all: ["coupons"] as const,
+    list: (filters: CouponListFilters) => [...queryKeys.coupons.all, "list", filters] as const,
   },
 } as const;

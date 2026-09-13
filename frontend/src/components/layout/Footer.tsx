@@ -67,8 +67,8 @@ export function Footer() {
         <div className="space-y-4">
           <Logo />
           <p className="max-w-xs text-sm text-muted-foreground">
-            {APP_NAME} sélectionne pour vous des produits d'exception, livrés rapidement et
-            garantis par un service client attentif.
+            {APP_NAME} sélectionne pour vous des produits d'exception, livrés rapidement et garantis
+            par un service client attentif.
           </p>
           <div className="flex gap-2">
             {SOCIAL_LINKS.map(({ icon: Icon, label, href }) => (
@@ -92,7 +92,10 @@ export function Footer() {
             <ul className="space-y-2">
               {section.links.map((link) => (
                 <li key={link.label}>
-                  <Link to={link.to} className="text-sm text-muted-foreground hover:text-foreground">
+                  <Link
+                    to={link.to}
+                    className="text-sm text-muted-foreground hover:text-foreground"
+                  >
                     {link.label}
                   </Link>
                 </li>
@@ -102,8 +105,12 @@ export function Footer() {
         ))}
       </div>
 
-      <div className="border-t border-border">
-        <div className="container-page flex flex-col items-center justify-between gap-4 py-6 sm:flex-row">
+      <div className="relative overflow-hidden border-t border-border">
+        <div
+          aria-hidden
+          className="bg-gradient-brand pointer-events-none absolute inset-0 opacity-[0.06]"
+        />
+        <div className="container-page relative flex flex-col items-center justify-between gap-4 py-6 sm:flex-row">
           <form onSubmit={handleSubscribe} className="flex w-full max-w-sm gap-2">
             <Input
               type="email"

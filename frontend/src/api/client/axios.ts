@@ -62,9 +62,14 @@ httpClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError<Partial<ApiErrorPayload>>) => {
     const status = error.response?.status ?? 0;
-    const originalRequest = error.config as (typeof error.config & { _retry?: boolean }) | undefined;
+    const originalRequest = error.config as
+      (typeof error.config & { _retry?: boolean }) | undefined;
     const url = originalRequest?.url ?? "";
-    const isRefreshable = status === 401 && originalRequest && !originalRequest._retry && !NO_REFRESH_PATHS.some((p) => url.includes(p));
+    const isRefreshable =
+      status === 401 &&
+      originalRequest &&
+      !originalRequest._retry &&
+      !NO_REFRESH_PATHS.some((p) => url.includes(p));
 
     if (isRefreshable) {
       originalRequest._retry = true;
@@ -82,7 +87,8 @@ httpClient.interceptors.response.use(
     }
 
     const payload: ApiErrorPayload = {
-      message: error.response?.data?.message ?? "Une erreur inattendue est survenue. Veuillez réessayer.",
+      message:
+        error.response?.data?.message ?? "Une erreur inattendue est survenue. Veuillez réessayer.",
       code: error.response?.data?.code ?? (error.code || "UNKNOWN_ERROR"),
       status,
       fieldErrors: error.response?.data?.fieldErrors,

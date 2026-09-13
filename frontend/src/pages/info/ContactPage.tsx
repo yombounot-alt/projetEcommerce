@@ -6,14 +6,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ROUTES } from "@/constants/routes.constants";
 
 const CHANNELS = [
-  { icon: MailIcon, label: "Email", value: "yombounot@gmail.com", href: "mailto:yombounot@gmail.com" },
-  { icon: PhoneIcon, label: "Téléphone", value: "+224 620 61 72 79", href: "tel:+224620617279" },
   {
-    icon: MapPinIcon,
-    label: "Adresse",
-    value: "Enta Marché, Commune de Tombolia, Conakry - Rép. de Guinée",
-    href: undefined,
+    icon: MailIcon,
+    label: "Email",
+    value: "support@lumera.example",
+    href: "mailto:support@lumera.example",
   },
+  { icon: PhoneIcon, label: "Téléphone", value: "+224 600 00 00 00", href: "tel:+224600000000" },
+  { icon: MapPinIcon, label: "Adresse", value: "Conakry, Guinée", href: undefined },
 ];
 
 export default function ContactPage() {
@@ -49,11 +49,17 @@ export default function ContactPage() {
 
       <p className="mt-8 max-w-2xl text-sm text-muted-foreground">
         Une question sur une commande en cours ? Consultez d'abord notre{" "}
-        <Link to={ROUTES.help.faq} className="font-medium text-foreground underline underline-offset-4">
+        <Link
+          to={ROUTES.help.faq}
+          className="font-medium text-foreground underline underline-offset-4"
+        >
           FAQ
         </Link>{" "}
         ou votre espace{" "}
-        <Link to={ROUTES.orders} className="font-medium text-foreground underline underline-offset-4">
+        <Link
+          to={ROUTES.orders}
+          className="font-medium text-foreground underline underline-offset-4"
+        >
           Mes commandes
         </Link>
         , la réponse s'y trouve souvent.

@@ -17,7 +17,11 @@ function Pagination({ className, ...props }: React.ComponentProps<"nav">) {
 
 function PaginationContent({ className, ...props }: React.ComponentProps<"ul">) {
   return (
-    <ul data-slot="pagination-content" className={cn("flex flex-row items-center gap-1", className)} {...props} />
+    <ul
+      data-slot="pagination-content"
+      className={cn("flex flex-row items-center gap-1", className)}
+      {...props}
+    />
   );
 }
 
@@ -61,7 +65,13 @@ function PaginationPrevious({ className, ...props }: React.ComponentProps<typeof
 
 function PaginationNext({ className, ...props }: React.ComponentProps<typeof Button>) {
   return (
-    <Button aria-label="Page suivante" variant="ghost" size="icon" className={cn("size-9", className)} {...props}>
+    <Button
+      aria-label="Page suivante"
+      variant="ghost"
+      size="icon"
+      className={cn("size-9", className)}
+      {...props}
+    >
       <ChevronRightIcon className="size-4" />
     </Button>
   );

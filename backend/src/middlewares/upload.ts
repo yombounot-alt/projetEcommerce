@@ -17,7 +17,10 @@ export const upload = multer({
   fileFilter: (_req, file, callback) => {
     if (!ALLOWED_MIME_TYPES.has(file.mimetype)) {
       callback(
-        new BadRequestError(`Type de fichier non supporté : ${file.mimetype}`, "UNSUPPORTED_FILE_TYPE"),
+        new BadRequestError(
+          `Type de fichier non supporté : ${file.mimetype}`,
+          "UNSUPPORTED_FILE_TYPE",
+        ),
       );
       return;
     }

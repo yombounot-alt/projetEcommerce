@@ -45,7 +45,9 @@ export function ProductReviews({ product }: { product: Product }) {
       ) : (
         <>
           <div className="flex items-center gap-3">
-            <p className="font-heading text-3xl font-semibold text-foreground">{product.rating.toFixed(1)}</p>
+            <p className="font-heading text-3xl font-semibold text-foreground">
+              {product.rating.toFixed(1)}
+            </p>
             <div>
               <StarRating rating={product.rating} />
               <p className="text-sm text-muted-foreground">{product.reviewCount} avis</p>
@@ -65,7 +67,9 @@ export function ProductReviews({ product }: { product: Product }) {
                     <p className="text-xs text-muted-foreground">{formatDate(review.createdAt)}</p>
                   </div>
                   {review.verifiedPurchase && (
-                    <Badge variant="secondary" className="ml-auto">Achat vérifié</Badge>
+                    <Badge variant="secondary" className="ml-auto">
+                      Achat vérifié
+                    </Badge>
                   )}
                 </div>
                 <StarRating rating={review.rating} size={14} />
@@ -77,13 +81,14 @@ export function ProductReviews({ product }: { product: Product }) {
         </>
       )}
 
-      {user?.role === "customer" && (
-        alreadyReviewed ? (
-          <p className="text-sm text-muted-foreground">Vous avez déjà donné votre avis sur ce produit.</p>
+      {user?.role === "customer" &&
+        (alreadyReviewed ? (
+          <p className="text-sm text-muted-foreground">
+            Vous avez déjà donné votre avis sur ce produit.
+          </p>
         ) : (
           <ReviewForm isSubmitting={createReview.isPending} onSubmit={handleSubmitReview} />
-        )
-      )}
+        ))}
     </div>
   );
 }

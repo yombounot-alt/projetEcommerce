@@ -6,6 +6,7 @@ import { StatsCard } from "@/components/common/StatsCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDashboardOverviewQuery } from "@/features/dashboard/api/useDashboardOverviewQuery";
 import { formatPrice } from "@/utils/format";
+import { optimizedImageUrl } from "@/utils/image";
 
 const KPI_ICONS = [DollarSignIcon, ShoppingCartIcon, StarIcon, PackageIcon];
 
@@ -26,16 +27,28 @@ export default function SellerDashboardPage() {
       </div>
 
       <Card>
-        <CardHeader><CardTitle>Produits les plus vendus</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle>Produits les plus vendus</CardTitle>
+        </CardHeader>
         <CardContent className="space-y-3">
           {data.topProducts.map((product) => (
             <div key={product.productId} className="flex items-center gap-3">
-              {product.image && <img src={product.image} alt={product.name} className="size-10 rounded-md object-cover" />}
+              {product.image && (
+                <img
+                  src={optimizedImageUrl(product.image, 80)}
+                  alt={product.name}
+                  loading="lazy"
+                  decoding="async"
+                  className="size-10 rounded-md object-cover"
+                />
+              )}
               <div className="flex-1 overflow-hidden">
                 <p className="truncate text-sm font-medium text-foreground">{product.name}</p>
                 <p className="text-xs text-muted-foreground">{product.unitsSold} vendus</p>
               </div>
-              <p className="text-sm font-semibold text-foreground">{formatPrice(product.revenue)}</p>
+              <p className="text-sm font-semibold text-foreground">
+                {formatPrice(product.revenue)}
+              </p>
             </div>
           ))}
         </CardContent>

@@ -6,9 +6,13 @@ import { Button } from "@/components/ui/button";
 import { APP_DESCRIPTION, APP_NAME, FREE_SHIPPING_THRESHOLD } from "@/constants/app.constants";
 import { ROUTES } from "@/constants/routes.constants";
 import { useCategoriesQuery } from "@/features/categories/api/useCategoriesQuery";
-import { useFeaturedProductsQuery, useNewArrivalsQuery } from "@/features/products/api/useFeaturedProductsQuery";
+import {
+  useFeaturedProductsQuery,
+  useNewArrivalsQuery,
+} from "@/features/products/api/useFeaturedProductsQuery";
 import { ProductGrid } from "@/features/products/components/ProductGrid";
 import { formatPrice } from "@/utils/format";
+import { optimizedImageUrl } from "@/utils/image";
 
 const TRUST_POINTS = [
   {
@@ -37,26 +41,44 @@ export default function HomePage() {
     <div>
       <Seo title={APP_NAME} description={APP_DESCRIPTION} canonicalPath={ROUTES.home} />
 
-      <section className="container-page grid gap-10 py-12 lg:grid-cols-2 lg:items-center lg:py-20">
-        <div className="space-y-6">
-          <p className="text-sm font-medium uppercase tracking-wide text-accent">Nouvelle collection</p>
-          <h1 className="font-heading text-4xl font-semibold text-foreground sm:text-5xl">
-            Le raffinement, livré chez vous.
-          </h1>
-          <p className="max-w-md text-base text-muted-foreground">{APP_DESCRIPTION}</p>
-          <div className="flex flex-wrap gap-3">
-            <Button asChild size="lg">
-              <Link to={ROUTES.shop}>
-                Découvrir la boutique <ArrowRightIcon />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link to={`${ROUTES.shop}?sort=newest`}>Nouveautés</Link>
-            </Button>
+      <section className="container-page relative overflow-hidden py-12 lg:py-20">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-24 -left-24 size-80 rounded-full bg-primary opacity-15 blur-3xl"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute top-16 left-40 size-72 rounded-full bg-accent opacity-20 blur-3xl"
+        />
+        <div className="relative grid gap-10 lg:grid-cols-2 lg:items-center">
+          <div className="space-y-6">
+            <p className="text-sm font-medium uppercase tracking-wide text-accent">
+              Nouvelle collection
+            </p>
+            <h1 className="font-heading text-4xl font-semibold text-foreground sm:text-5xl">
+              Le raffinement, livré chez vous.
+            </h1>
+            <p className="max-w-md text-base text-muted-foreground">{APP_DESCRIPTION}</p>
+            <div className="flex flex-wrap gap-3">
+              <Button asChild size="lg">
+                <Link to={ROUTES.shop}>
+                  Découvrir la boutique <ArrowRightIcon />
+                </Link>
+              </Button>
+              <Button asChild size="lg" variant="outline">
+                <Link to={`${ROUTES.shop}?sort=newest`}>Nouveautés</Link>
+              </Button>
+            </div>
           </div>
-        </div>
-        <div className="overflow-hidden rounded-2xl bg-muted">
-          <img src={heroImage} alt="Sélection Luméra" className="h-full w-full object-cover" />
+          <div className="overflow-hidden rounded-2xl bg-muted shadow-lg ring-1 ring-border">
+            <img
+              src={heroImage}
+              alt="Sélection Luméra"
+              decoding="async"
+              fetchPriority="high"
+              className="h-full w-full object-cover"
+            />
+          </div>
         </div>
       </section>
 
@@ -91,9 +113,10 @@ export default function HomePage() {
             >
               {category.imageUrl && (
                 <img
-                  src={category.imageUrl}
+                  src={optimizedImageUrl(category.imageUrl, 500)}
                   alt={category.name}
                   loading="lazy"
+                  decoding="async"
                   className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
               )}
@@ -108,7 +131,9 @@ export default function HomePage() {
 
       <section className="container-page py-14">
         <div className="mb-6 flex items-center justify-between">
-          <h2 className="font-heading text-2xl font-semibold text-foreground">Sélection du moment</h2>
+          <h2 className="font-heading text-2xl font-semibold text-foreground">
+            Sélection du moment
+          </h2>
           <Button asChild variant="ghost" size="sm">
             <Link to={ROUTES.shop}>
               Tout voir <ArrowRightIcon />
@@ -127,7 +152,11 @@ export default function HomePage() {
             </Link>
           </Button>
         </div>
-        <ProductGrid products={newArrivals ?? []} isLoading={newArrivalsLoading} skeletonCount={4} />
+        <ProductGrid
+          products={newArrivals ?? []}
+          isLoading={newArrivalsLoading}
+          skeletonCount={4}
+        />
       </section>
     </div>
   );

@@ -13,7 +13,13 @@ interface SearchBarProps {
   debounceMs?: number;
 }
 
-export function SearchBar({ value, onChange, placeholder = "Rechercher…", className, debounceMs = 350 }: SearchBarProps) {
+export function SearchBar({
+  value,
+  onChange,
+  placeholder = "Rechercher…",
+  className,
+  debounceMs = 350,
+}: SearchBarProps) {
   const [localValue, setLocalValue] = useState(value);
   const debouncedValue = useDebouncedValue(localValue, debounceMs);
 

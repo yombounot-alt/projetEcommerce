@@ -4,7 +4,14 @@ import { useForm } from "react-hook-form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { paymentMethodSchema, type PaymentMethodValues } from "@/schemas/checkout.schema";
@@ -38,7 +45,11 @@ export function PaymentStep({ defaultValues, isSubmitting, onSubmit, onBack }: P
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <RadioGroup value={field.value} onValueChange={field.onChange} className="grid grid-cols-2 gap-3">
+                <RadioGroup
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  className="grid grid-cols-2 gap-3"
+                >
                   {PAYMENT_METHODS.map((method) => (
                     <Label
                       key={method.id}
@@ -65,21 +76,25 @@ export function PaymentStep({ defaultValues, isSubmitting, onSubmit, onBack }: P
               <FormControl>
                 <Checkbox checked={field.value} onCheckedChange={field.onChange} />
               </FormControl>
-              <FormLabel className="font-normal">Adresse de facturation identique à l'adresse de livraison</FormLabel>
+              <FormLabel className="font-normal">
+                Adresse de facturation identique à l'adresse de livraison
+              </FormLabel>
             </FormItem>
           )}
         />
 
         <Alert>
           <AlertDescription>
-            Par sécurité, aucune donnée bancaire n'est jamais saisie ou stockée sur ce site : pour "Carte
-            bancaire", vous serez redirigé vers la page de paiement sécurisée ChapchaPay pour finaliser la
-            transaction.
+            Par sécurité, aucune donnée bancaire n'est jamais saisie ou stockée sur ce site : pour
+            "Carte bancaire", vous serez redirigé vers la page de paiement sécurisée ChapchaPay pour
+            finaliser la transaction.
           </AlertDescription>
         </Alert>
 
         <div className="flex gap-3">
-          <Button type="button" variant="outline" onClick={onBack}>Retour</Button>
+          <Button type="button" variant="outline" onClick={onBack}>
+            Retour
+          </Button>
           <Button type="submit" size="lg" variant="accent" disabled={isSubmitting}>
             {isSubmitting ? "Traitement…" : "Confirmer et payer"}
           </Button>

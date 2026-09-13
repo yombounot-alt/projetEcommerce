@@ -4,7 +4,14 @@ import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
 import { Seo } from "@/components/common/Seo";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { ROUTES } from "@/constants/routes.constants";
 import { useForgotPasswordMutation } from "@/features/auth/api/useAuthMutations";
@@ -22,7 +29,9 @@ export default function ForgotPasswordPage() {
       <div className="space-y-4 text-center">
         <Seo title="Email envoyé" noIndex />
         <MailCheckIcon className="mx-auto size-10 text-success" />
-        <h1 className="font-heading text-2xl font-semibold text-foreground">Vérifiez votre boîte mail</h1>
+        <h1 className="font-heading text-2xl font-semibold text-foreground">
+          Vérifiez votre boîte mail
+        </h1>
         <p className="text-sm text-muted-foreground">{mutation.data.message}</p>
         <Button asChild variant="outline" className="w-full">
           <Link to={ROUTES.login}>Retour à la connexion</Link>
@@ -42,14 +51,24 @@ export default function ForgotPasswordPage() {
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit((values) => mutation.mutate(values.email))} className="space-y-4">
+        <form
+          onSubmit={form.handleSubmit((values) => mutation.mutate(values.email))}
+          className="space-y-4"
+        >
           <FormField
             control={form.control}
             name="email"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Email</FormLabel>
-                <FormControl><Input type="email" autoComplete="email" placeholder="vous@exemple.com" {...field} /></FormControl>
+                <FormControl>
+                  <Input
+                    type="email"
+                    autoComplete="email"
+                    placeholder="vous@exemple.com"
+                    {...field}
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}

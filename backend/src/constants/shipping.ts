@@ -8,25 +8,18 @@ export const FREE_SHIPPING_THRESHOLD = 500_000;
 export const STANDARD_SHIPPING_COST = 20_000;
 export const EXPRESS_SHIPPING_COST = 40_000;
 
-export interface Coupon {
-  code: string;
-  type: "percentage" | "fixed";
-  value: number;
-  minSubtotal?: number;
-}
-
-// Same demo coupons as frontend/src/api/services/order.service.ts's mock implementation.
-export const KNOWN_COUPONS: Coupon[] = [
-  { code: "WELCOME10", type: "percentage", value: 10 },
-  { code: "FREESHIP", type: "fixed", value: STANDARD_SHIPPING_COST },
-];
-
 export function computeShippingCost(method: "standard" | "express", subtotal: number): number {
   if (subtotal >= FREE_SHIPPING_THRESHOLD) return 0;
   return method === "express" ? EXPRESS_SHIPPING_COST : STANDARD_SHIPPING_COST;
 }
 
-export function computeDiscount(coupon: Coupon | undefined, subtotal: number): number {
+interface DiscountableCoupon {
+  type: "percentage" | "fixed";
+  value: number;
+  minSubtotal?: number;
+}
+
+export function computeDiscount(coupon: DiscountableCoupon | undefined, subtotal: number): number {
   if (!coupon) return 0;
   if (coupon.minSubtotal && subtotal < coupon.minSubtotal) return 0;
   const discount = coupon.type === "percentage" ? subtotal * (coupon.value / 100) : coupon.value;

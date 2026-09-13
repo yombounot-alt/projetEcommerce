@@ -120,7 +120,16 @@ const productNamesByCategory: Record<string, string[]> = {
   ],
 };
 
-const adjectives = ["Premium", "Édition Limitée", "Pro", "Essentiel", "Classic", "Signature", "Urban", "Nature"];
+const adjectives = [
+  "Premium",
+  "Édition Limitée",
+  "Pro",
+  "Essentiel",
+  "Classic",
+  "Signature",
+  "Urban",
+  "Nature",
+];
 
 function slugify(value: string) {
   return value
@@ -143,7 +152,9 @@ function generateProducts(): Product[] {
       const brand = pick(mockBrands);
       const price = randFloat(14.99, 899.99);
       const hasDiscount = rng() > 0.65;
-      const compareAtPrice = hasDiscount ? Number((price * randFloat(1.15, 1.5)).toFixed(2)) : undefined;
+      const compareAtPrice = hasDiscount
+        ? Number((price * randFloat(1.15, 1.5)).toFixed(2))
+        : undefined;
       const stock = rng() > 0.12 ? randInt(0, 250) : 0;
       const reviewCount = randInt(0, 480);
       const id = `prod-${counter.toString().padStart(4, "0")}`;
@@ -185,6 +196,8 @@ function generateProducts(): Product[] {
         tags: [category.slug, brand.slug],
         isFeatured: rng() > 0.82,
         isNew: rng() > 0.78,
+        variantOptions: [],
+        variants: [],
         createdAt: new Date(Date.now() - randInt(1, 400) * 86_400_000).toISOString(),
         updatedAt: new Date(Date.now() - randInt(0, 30) * 86_400_000).toISOString(),
       });

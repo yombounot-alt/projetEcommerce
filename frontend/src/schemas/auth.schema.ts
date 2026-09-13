@@ -10,8 +10,16 @@ export type LoginFormValues = z.infer<typeof loginSchema>;
 
 export const registerSchema = z
   .object({
-    firstName: z.string().trim().min(2, "Prénom trop court").max(50, "Prénom trop long (50 caractères maximum)"),
-    lastName: z.string().trim().min(2, "Nom trop court").max(50, "Nom trop long (50 caractères maximum)"),
+    firstName: z
+      .string()
+      .trim()
+      .min(2, "Prénom trop court")
+      .max(50, "Prénom trop long (50 caractères maximum)"),
+    lastName: z
+      .string()
+      .trim()
+      .min(2, "Nom trop court")
+      .max(50, "Nom trop long (50 caractères maximum)"),
     email: z.string().trim().min(1, "L'email est requis").email("Email invalide"),
     password: z
       .string()

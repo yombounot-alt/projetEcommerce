@@ -15,11 +15,15 @@ export default function OrderConfirmationPage() {
   const { orderNumber } = useParams<{ orderNumber: string }>();
   const { data: order, isLoading, isError } = useOrderByNumberQuery(orderNumber);
 
-  if (isLoading) return <LoadingState className="min-h-[60vh]" label="Récupération de votre commande…" />;
+  if (isLoading)
+    return <LoadingState className="min-h-[60vh]" label="Récupération de votre commande…" />;
   if (isError || !order) {
     return (
       <div className="container-page py-16">
-        <ErrorState title="Commande introuvable" description="Impossible de retrouver cette commande." />
+        <ErrorState
+          title="Commande introuvable"
+          description="Impossible de retrouver cette commande."
+        />
       </div>
     );
   }
@@ -28,10 +32,13 @@ export default function OrderConfirmationPage() {
     <div className="container-page flex flex-col items-center py-16 text-center">
       <Seo title="Commande confirmée" noIndex />
       <CheckCircle2Icon className="size-14 text-success" />
-      <h1 className="mt-4 font-heading text-3xl font-semibold text-foreground">Merci pour votre commande !</h1>
+      <h1 className="mt-4 font-heading text-3xl font-semibold text-foreground">
+        Merci pour votre commande !
+      </h1>
       <p className="mt-2 max-w-md text-sm text-muted-foreground">
         Un email de confirmation a été envoyé à {order.customerEmail}. Votre commande{" "}
-        <span className="font-medium text-foreground">{order.orderNumber}</span> est en cours de traitement.
+        <span className="font-medium text-foreground">{order.orderNumber}</span> est en cours de
+        traitement.
       </p>
 
       <Card className="mt-8 w-full max-w-lg text-left">
@@ -43,8 +50,13 @@ export default function OrderConfirmationPage() {
           <Separator />
           {order.items.map((item) => (
             <div key={item.id} className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">{item.productName} × {item.quantity}</span>
-              <span className="font-medium text-foreground">{formatPrice(item.subtotal, order.currency)}</span>
+              <span className="text-muted-foreground">
+                {item.productName}
+                {item.variantLabel && ` (${item.variantLabel})`} × {item.quantity}
+              </span>
+              <span className="font-medium text-foreground">
+                {formatPrice(item.subtotal, order.currency)}
+              </span>
             </div>
           ))}
           <Separator />

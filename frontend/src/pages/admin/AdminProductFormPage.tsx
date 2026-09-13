@@ -6,7 +6,10 @@ import { Seo } from "@/components/common/Seo";
 import { ROUTES } from "@/constants/routes.constants";
 import { useCategoriesQuery } from "@/features/categories/api/useCategoriesQuery";
 import { useProductByIdQuery } from "@/features/products/api/useProductByIdQuery";
-import { useCreateProductMutation, useUpdateProductMutation } from "@/features/products/api/useProductMutations";
+import {
+  useCreateProductMutation,
+  useUpdateProductMutation,
+} from "@/features/products/api/useProductMutations";
 import { ProductForm } from "@/features/products/components/ProductForm";
 import type { ProductFormValues } from "@/schemas/product.schema";
 
@@ -26,7 +29,9 @@ export default function AdminProductFormPage() {
       navigate(ROUTES.admin.products);
     };
     const onError = () => {
-      toast.error(isEditing ? "Impossible de mettre à jour ce produit." : "Impossible de créer ce produit.");
+      toast.error(
+        isEditing ? "Impossible de mettre à jour ce produit." : "Impossible de créer ce produit.",
+      );
     };
 
     if (isEditing && id) {
@@ -40,7 +45,12 @@ export default function AdminProductFormPage() {
   return (
     <div className="space-y-6">
       <Seo title={isEditing ? "Modifier le produit" : "Nouveau produit"} noIndex />
-      <Breadcrumb items={[{ label: "Produits", to: ROUTES.admin.products }, { label: isEditing ? "Modifier" : "Nouveau" }]} />
+      <Breadcrumb
+        items={[
+          { label: "Produits", to: ROUTES.admin.products },
+          { label: isEditing ? "Modifier" : "Nouveau" },
+        ]}
+      />
       <PageHeader title={isEditing ? "Modifier le produit" : "Nouveau produit"} />
 
       <ProductForm

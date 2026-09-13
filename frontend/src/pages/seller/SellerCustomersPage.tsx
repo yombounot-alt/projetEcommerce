@@ -25,14 +25,20 @@ export default function SellerCustomersPage() {
             <AvatarFallback>{getInitials(user.firstName, user.lastName)}</AvatarFallback>
           </Avatar>
           <div>
-            <p className="font-medium text-foreground">{user.firstName} {user.lastName}</p>
+            <p className="font-medium text-foreground">
+              {user.firstName} {user.lastName}
+            </p>
             <p className="text-xs text-muted-foreground">{user.email}</p>
           </div>
         </div>
       ),
     },
     { key: "createdAt", header: "Client depuis", render: (u) => formatDate(u.createdAt) },
-    { key: "lastActive", header: "Dernière activité", render: (u) => (u.lastActiveAt ? formatDate(u.lastActiveAt) : "—") },
+    {
+      key: "lastActive",
+      header: "Dernière activité",
+      render: (u) => (u.lastActiveAt ? formatDate(u.lastActiveAt) : "—"),
+    },
   ];
 
   return (
@@ -40,9 +46,22 @@ export default function SellerCustomersPage() {
       <Seo title="Mes clients" noIndex />
       <PageHeader title="Clients" description="Clients ayant acheté vos produits." />
 
-      <SearchBar value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Nom ou email…" className="max-w-sm" />
+      <SearchBar
+        value={search}
+        onChange={(v) => {
+          setSearch(v);
+          setPage(1);
+        }}
+        placeholder="Nom ou email…"
+        className="max-w-sm"
+      />
 
-      <DataTable columns={columns} data={data?.items ?? []} rowKey={(u) => u.id} isLoading={isLoading} />
+      <DataTable
+        columns={columns}
+        data={data?.items ?? []}
+        rowKey={(u) => u.id}
+        isLoading={isLoading}
+      />
 
       {data && <PaginationControl pagination={data.pagination} onPageChange={setPage} />}
     </div>

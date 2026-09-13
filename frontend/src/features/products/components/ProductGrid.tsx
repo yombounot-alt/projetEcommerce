@@ -12,10 +12,20 @@ interface ProductGridProps {
   skeletonCount?: number;
 }
 
-export function ProductGrid({ products, isLoading, view = "grid", skeletonCount = 8 }: ProductGridProps) {
+export function ProductGrid({
+  products,
+  isLoading,
+  view = "grid",
+  skeletonCount = 8,
+}: ProductGridProps) {
   if (isLoading) {
     return (
-      <div className={cn("grid gap-4", view === "grid" ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4" : "grid-cols-1")}>
+      <div
+        className={cn(
+          "grid gap-4",
+          view === "grid" ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4" : "grid-cols-1",
+        )}
+      >
         {Array.from({ length: skeletonCount }).map((_, index) => (
           <div key={index} className="space-y-3">
             <Skeleton className="aspect-square w-full rounded-xl" />

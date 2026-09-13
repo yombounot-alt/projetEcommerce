@@ -2,13 +2,7 @@ import type { ISODateString, UUID } from "./common.types";
 import type { Address } from "./user.types";
 
 export type OrderStatus =
-  | "pending"
-  | "paid"
-  | "processing"
-  | "shipped"
-  | "delivered"
-  | "cancelled"
-  | "refunded";
+  "pending" | "paid" | "processing" | "shipped" | "delivered" | "cancelled" | "refunded";
 
 export type PaymentMethod = "card" | "paypal" | "bank_transfer" | "cash_on_delivery";
 
@@ -17,6 +11,8 @@ export type PaymentStatus = "pending" | "authorized" | "captured" | "failed" | "
 export interface OrderItem {
   id: UUID;
   productId: UUID;
+  variantId?: UUID;
+  variantLabel?: string;
   productName: string;
   productImage: string;
   sku: string;
@@ -60,6 +56,8 @@ export interface Order {
 
 export interface CartItem {
   productId: UUID;
+  variantId?: UUID;
+  variantLabel?: string;
   name: string;
   slug: string;
   image: string;

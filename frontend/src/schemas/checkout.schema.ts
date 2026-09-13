@@ -32,7 +32,9 @@ export const shippingAddressSchema = z.object({
 export type ShippingAddressValues = z.infer<typeof shippingAddressSchema>;
 
 export const shippingMethodSchema = z.object({
-  methodId: z.enum(["standard", "express"], { message: "Veuillez sélectionner un mode de livraison" }),
+  methodId: z.enum(["standard", "express"], {
+    message: "Veuillez sélectionner un mode de livraison",
+  }),
 });
 
 export type ShippingMethodValues = z.infer<typeof shippingMethodSchema>;

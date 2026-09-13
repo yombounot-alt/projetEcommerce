@@ -42,8 +42,3 @@ export const updateStatus = catchAsync(async (req: Request, res: Response) => {
   );
   res.status(200).json(order);
 });
-
-export const applyCoupon = catchAsync(async (req: Request, res: Response) => {
-  const coupon = orderService.applyCoupon(req.body.code, req.body.subtotal);
-  res.status(200).json(coupon);
-});

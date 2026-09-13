@@ -61,7 +61,10 @@ export async function createReview(productId: string, authorId: string, input: C
 
   const existing = await Review.findOne({ product: productId, author: authorId });
   if (existing) {
-    throw new ConflictError("Vous avez déjà laissé un avis sur ce produit", "REVIEW_ALREADY_EXISTS");
+    throw new ConflictError(
+      "Vous avez déjà laissé un avis sur ce produit",
+      "REVIEW_ALREADY_EXISTS",
+    );
   }
 
   // A verified purchase means this customer has a delivered order containing this product —

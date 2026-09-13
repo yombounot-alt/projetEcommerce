@@ -16,8 +16,16 @@ const pick = <T>(arr: readonly T[]): T => arr[Math.floor(rng() * arr.length)];
 const randInt = (min: number, max: number) => Math.floor(rng() * (max - min + 1)) + min;
 
 const reviewers = [
-  "Julien D.", "Amandine R.", "Karim B.", "Sophie M.", "Thomas L.",
-  "Fatou N.", "Pierre G.", "Laura V.", "Antoine C.", "Nadia S.",
+  "Julien D.",
+  "Amandine R.",
+  "Karim B.",
+  "Sophie M.",
+  "Thomas L.",
+  "Fatou N.",
+  "Pierre G.",
+  "Laura V.",
+  "Antoine C.",
+  "Nadia S.",
 ];
 
 const titles = [

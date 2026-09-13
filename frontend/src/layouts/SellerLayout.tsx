@@ -1,4 +1,10 @@
-import { BarChart3Icon, LayoutDashboardIcon, PackageIcon, ShoppingCartIcon, UsersIcon } from "lucide-react";
+import {
+  BarChart3Icon,
+  LayoutDashboardIcon,
+  PackageIcon,
+  ShoppingCartIcon,
+  UsersIcon,
+} from "lucide-react";
 import type { DashboardNavItem } from "@/components/layout/DashboardSidebar";
 import { ROUTES } from "@/constants/routes.constants";
 import { DashboardLayout } from "./DashboardLayout";

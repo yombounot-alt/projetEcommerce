@@ -4,7 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { EXPRESS_SHIPPING_COST, FREE_SHIPPING_THRESHOLD, STANDARD_SHIPPING_COST } from "@/constants/app.constants";
+import {
+  EXPRESS_SHIPPING_COST,
+  FREE_SHIPPING_THRESHOLD,
+  STANDARD_SHIPPING_COST,
+} from "@/constants/app.constants";
 import { shippingMethodSchema, type ShippingMethodValues } from "@/schemas/checkout.schema";
 import { formatPrice } from "@/utils/format";
 
@@ -15,7 +19,12 @@ interface ShippingMethodStepProps {
   onBack: () => void;
 }
 
-export function ShippingMethodStep({ subtotal, defaultValues, onNext, onBack }: ShippingMethodStepProps) {
+export function ShippingMethodStep({
+  subtotal,
+  defaultValues,
+  onNext,
+  onBack,
+}: ShippingMethodStepProps) {
   const isFreeStandard = subtotal >= FREE_SHIPPING_THRESHOLD;
   const methods = [
     {
@@ -77,8 +86,12 @@ export function ShippingMethodStep({ subtotal, defaultValues, onNext, onBack }: 
           )}
         />
         <div className="flex gap-3">
-          <Button type="button" variant="outline" onClick={onBack}>Retour</Button>
-          <Button type="submit" size="lg">Continuer</Button>
+          <Button type="button" variant="outline" onClick={onBack}>
+            Retour
+          </Button>
+          <Button type="submit" size="lg">
+            Continuer
+          </Button>
         </div>
       </form>
     </Form>

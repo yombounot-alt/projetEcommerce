@@ -51,7 +51,11 @@ export function DashboardHeader({
         </Button>
         <SheetContent side="left" className="w-72 p-0">
           <SheetTitle className="sr-only">Navigation</SheetTitle>
-          <DashboardSidebar items={navItems} sectionLabel={sectionLabel} onNavigate={() => onMobileOpenChange(false)} />
+          <DashboardSidebar
+            items={navItems}
+            sectionLabel={sectionLabel}
+            onNavigate={() => onMobileOpenChange(false)}
+          />
         </SheetContent>
       </Sheet>
 
@@ -61,14 +65,18 @@ export function DashboardHeader({
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon" className="relative" aria-label="Notifications">
             <BellIcon className="size-5" />
-            {hasUnread && <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-accent" />}
+            {hasUnread && (
+              <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-accent" />
+            )}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-80">
           <DropdownMenuLabel>Notifications</DropdownMenuLabel>
           <DropdownMenuSeparator />
           {notifications.length === 0 && (
-            <p className="px-2 py-3 text-center text-sm text-muted-foreground">Aucune notification.</p>
+            <p className="px-2 py-3 text-center text-sm text-muted-foreground">
+              Aucune notification.
+            </p>
           )}
           {notifications.map((notification) => (
             <DropdownMenuItem
@@ -76,10 +84,18 @@ export function DashboardHeader({
               className="flex-col items-start gap-0.5"
               onSelect={() => !notification.isRead && markAsRead.mutate(notification.id)}
             >
-              <span className={notification.isRead ? "text-sm text-muted-foreground" : "text-sm font-medium text-foreground"}>
+              <span
+                className={
+                  notification.isRead
+                    ? "text-sm text-muted-foreground"
+                    : "text-sm font-medium text-foreground"
+                }
+              >
                 {notification.message}
               </span>
-              <span className="text-xs text-muted-foreground">{formatRelativeTime(new Date(notification.createdAt))}</span>
+              <span className="text-xs text-muted-foreground">
+                {formatRelativeTime(new Date(notification.createdAt))}
+              </span>
             </DropdownMenuItem>
           ))}
         </DropdownMenuContent>

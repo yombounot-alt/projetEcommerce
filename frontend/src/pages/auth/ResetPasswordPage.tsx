@@ -4,7 +4,14 @@ import { useForm } from "react-hook-form";
 import { Link, useSearchParams } from "react-router-dom";
 import { Seo } from "@/components/common/Seo";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { ROUTES } from "@/constants/routes.constants";
 import { useResetPasswordMutation } from "@/features/auth/api/useAuthMutations";
@@ -38,13 +45,19 @@ export default function ResetPasswordPage() {
     <div className="space-y-8">
       <Seo title="Réinitialiser le mot de passe" noIndex />
       <div className="space-y-2">
-        <h1 className="font-heading text-2xl font-semibold text-foreground">Nouveau mot de passe</h1>
-        <p className="text-sm text-muted-foreground">Choisissez un nouveau mot de passe sécurisé.</p>
+        <h1 className="font-heading text-2xl font-semibold text-foreground">
+          Nouveau mot de passe
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Choisissez un nouveau mot de passe sécurisé.
+        </p>
       </div>
 
       <Form {...form}>
         <form
-          onSubmit={form.handleSubmit((values) => mutation.mutate({ token: values.token, password: values.password }))}
+          onSubmit={form.handleSubmit((values) =>
+            mutation.mutate({ token: values.token, password: values.password }),
+          )}
           className="space-y-4"
         >
           <FormField
@@ -53,7 +66,9 @@ export default function ResetPasswordPage() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Nouveau mot de passe</FormLabel>
-                <FormControl><Input type="password" autoComplete="new-password" {...field} /></FormControl>
+                <FormControl>
+                  <Input type="password" autoComplete="new-password" {...field} />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -64,7 +79,9 @@ export default function ResetPasswordPage() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Confirmer le mot de passe</FormLabel>
-                <FormControl><Input type="password" autoComplete="new-password" {...field} /></FormControl>
+                <FormControl>
+                  <Input type="password" autoComplete="new-password" {...field} />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}

@@ -34,7 +34,9 @@ function buildMockCartDTO(): CartDTO {
       stock: product.stock,
     });
   }
-  const subtotal = Number(items.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2));
+  const subtotal = Number(
+    items.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2),
+  );
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
   return { items, subtotal, itemCount };
 }
@@ -48,7 +50,7 @@ export const cartService = {
     return data;
   },
 
-  async addItem(productId: string, quantity = 1): Promise<CartDTO> {
+  async addItem(productId: string, quantity = 1, variantId?: string): Promise<CartDTO> {
     if (env.useMocks) {
       const product = mockProducts.find((p) => p.id === productId);
       const maxStock = product?.stock ?? 999;
@@ -60,11 +62,15 @@ export const cartService = {
       }
       return mockDelay(buildMockCartDTO(), 250);
     }
-    const { data } = await httpClient.post<CartDTO>("/cart/items", { productId, quantity });
+    const { data } = await httpClient.post<CartDTO>("/cart/items", {
+      productId,
+      variantId,
+      quantity,
+    });
     return data;
   },
 
-  async updateItem(productId: string, quantity: number): Promise<CartDTO> {
+  async updateItem(productId: string, quantity: number, variantId?: string): Promise<CartDTO> {
     if (env.useMocks) {
       const line = mockCartLines.find((l) => l.productId === productId);
       if (line) {
@@ -73,16 +79,21 @@ export const cartService = {
       }
       return mockDelay(buildMockCartDTO(), 200);
     }
-    const { data } = await httpClient.patch<CartDTO>(`/cart/items/${productId}`, { quantity });
+    const { data } = await httpClient.patch<CartDTO>(`/cart/items/${productId}`, {
+      quantity,
+      variantId,
+    });
     return data;
   },
 
-  async removeItem(productId: string): Promise<CartDTO> {
+  async removeItem(productId: string, variantId?: string): Promise<CartDTO> {
     if (env.useMocks) {
       mockCartLines = mockCartLines.filter((l) => l.productId !== productId);
       return mockDelay(buildMockCartDTO(), 200);
     }
-    const { data } = await httpClient.delete<CartDTO>(`/cart/items/${productId}`);
+    const { data } = await httpClient.delete<CartDTO>(`/cart/items/${productId}`, {
+      params: variantId ? { variantId } : undefined,
+    });
     return data;
   },
 

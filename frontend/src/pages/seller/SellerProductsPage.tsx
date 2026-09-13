@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes.constants";
 import { useProductsQuery } from "@/features/products/api/useProductsQuery";
 import { formatPrice } from "@/utils/format";
+import { optimizedImageUrl } from "@/utils/image";
 import type { ProductListItem } from "@/types/product.types";
 
 export default function SellerProductsPage() {
@@ -24,7 +25,13 @@ export default function SellerProductsPage() {
       header: "Produit",
       render: (product) => (
         <div className="flex items-center gap-3">
-          <img src={product.images[0]} alt={product.name} className="size-10 rounded-md object-cover" />
+          <img
+            src={optimizedImageUrl(product.images[0], 80)}
+            alt={product.name}
+            loading="lazy"
+            decoding="async"
+            className="size-10 rounded-md object-cover"
+          />
           <p className="font-medium text-foreground">{product.name}</p>
         </div>
       ),
@@ -33,7 +40,11 @@ export default function SellerProductsPage() {
     {
       key: "stock",
       header: "Stock",
-      render: (p) => <Badge variant={p.stock === 0 ? "destructive" : p.stock < 10 ? "warning" : "success"}>{p.stock}</Badge>,
+      render: (p) => (
+        <Badge variant={p.stock === 0 ? "destructive" : p.stock < 10 ? "warning" : "success"}>
+          {p.stock}
+        </Badge>
+      ),
     },
     {
       key: "actions",
@@ -55,12 +66,31 @@ export default function SellerProductsPage() {
       <PageHeader
         title="Mes produits"
         description="Gérez les produits que vous proposez à la vente."
-        actions={<Button asChild><Link to={ROUTES.seller.productNew}><PlusIcon /> Ajouter un produit</Link></Button>}
+        actions={
+          <Button asChild>
+            <Link to={ROUTES.seller.productNew}>
+              <PlusIcon /> Ajouter un produit
+            </Link>
+          </Button>
+        }
       />
 
-      <SearchBar value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Rechercher…" className="max-w-sm" />
+      <SearchBar
+        value={search}
+        onChange={(v) => {
+          setSearch(v);
+          setPage(1);
+        }}
+        placeholder="Rechercher…"
+        className="max-w-sm"
+      />
 
-      <DataTable columns={columns} data={data?.items ?? []} rowKey={(p) => p.id} isLoading={isLoading} />
+      <DataTable
+        columns={columns}
+        data={data?.items ?? []}
+        rowKey={(p) => p.id}
+        isLoading={isLoading}
+      />
 
       {data && <PaginationControl pagination={data.pagination} onPageChange={setPage} />}
     </div>

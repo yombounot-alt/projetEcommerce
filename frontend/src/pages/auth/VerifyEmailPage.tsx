@@ -24,7 +24,9 @@ export default function VerifyEmailPage() {
         <XCircleIcon className="mx-auto size-10 text-destructive" />
         <h1 className="font-heading text-2xl font-semibold text-foreground">Lien invalide</h1>
         <p className="text-sm text-muted-foreground">Ce lien de vérification est incomplet.</p>
-        <Button asChild className="w-full"><Link to={ROUTES.home}>Retour à l'accueil</Link></Button>
+        <Button asChild className="w-full">
+          <Link to={ROUTES.home}>Retour à l'accueil</Link>
+        </Button>
       </div>
     );
   }
@@ -34,11 +36,17 @@ export default function VerifyEmailPage() {
       <div className="space-y-4 text-center">
         <Seo title="Échec de la vérification" noIndex />
         <XCircleIcon className="mx-auto size-10 text-destructive" />
-        <h1 className="font-heading text-2xl font-semibold text-foreground">Échec de la vérification</h1>
+        <h1 className="font-heading text-2xl font-semibold text-foreground">
+          Échec de la vérification
+        </h1>
         <p className="text-sm text-muted-foreground">
-          {mutation.error instanceof Error ? mutation.error.message : "Ce lien est invalide ou a expiré."}
+          {mutation.error instanceof Error
+            ? mutation.error.message
+            : "Ce lien est invalide ou a expiré."}
         </p>
-        <Button asChild className="w-full"><Link to={ROUTES.login}>Retour à la connexion</Link></Button>
+        <Button asChild className="w-full">
+          <Link to={ROUTES.login}>Retour à la connexion</Link>
+        </Button>
       </div>
     );
   }
@@ -50,7 +58,9 @@ export default function VerifyEmailPage() {
         <CheckCircle2Icon className="mx-auto size-10 text-success" />
         <h1 className="font-heading text-2xl font-semibold text-foreground">Email vérifié !</h1>
         <p className="text-sm text-muted-foreground">{mutation.data.message}</p>
-        <Button asChild className="w-full"><Link to={ROUTES.home}>Continuer</Link></Button>
+        <Button asChild className="w-full">
+          <Link to={ROUTES.home}>Continuer</Link>
+        </Button>
       </div>
     );
   }

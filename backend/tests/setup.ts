@@ -29,7 +29,9 @@ async function canSpawnMongod(): Promise<boolean> {
 // against a replica set — this mirrors the production requirement documented in the README.
 beforeAll(async () => {
   if (await canSpawnMongod()) {
-    replSet = await MongoMemoryReplSet.create({ replSet: { count: 1, storageEngine: "wiredTiger" } });
+    replSet = await MongoMemoryReplSet.create({
+      replSet: { count: 1, storageEngine: "wiredTiger" },
+    });
     env.MONGODB_TEST_URI = replSet.getUri("lumera_test");
   } else if (!env.MONGODB_TEST_URI) {
     // Fall back to the developer's own local replica set (MONGODB_TEST_URI in .env)

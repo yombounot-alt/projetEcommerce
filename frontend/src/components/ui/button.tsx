@@ -4,12 +4,13 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background",
   {
     variants: {
       variant: {
         default: "bg-primary text-primary-foreground shadow-sm hover:opacity-90",
-        accent: "bg-accent text-accent-foreground shadow-sm hover:opacity-90",
+        accent:
+          "bg-gradient-accent text-accent-foreground shadow-sm hover:shadow-md hover:brightness-105",
         destructive: "bg-destructive text-destructive-foreground shadow-sm hover:opacity-90",
         outline: "border border-input bg-background shadow-sm hover:bg-secondary",
         secondary: "bg-secondary text-secondary-foreground hover:opacity-80",
@@ -36,8 +37,7 @@ function Button({
   size,
   asChild = false,
   ...props
-}: React.ComponentProps<"button"> &
-  VariantProps<typeof buttonVariants> & { asChild?: boolean }) {
+}: React.ComponentProps<"button"> & VariantProps<typeof buttonVariants> & { asChild?: boolean }) {
   const Comp = asChild ? Slot : "button";
   return (
     <Comp

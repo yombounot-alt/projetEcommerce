@@ -15,7 +15,11 @@ export default function SellerOrdersPage() {
   const { data, isLoading } = useOrdersQuery({ search, page, pageSize: 10 });
 
   const columns: DataTableColumn<Order>[] = [
-    { key: "orderNumber", header: "Commande", render: (o) => <span className="font-medium text-foreground">{o.orderNumber}</span> },
+    {
+      key: "orderNumber",
+      header: "Commande",
+      render: (o) => <span className="font-medium text-foreground">{o.orderNumber}</span>,
+    },
     { key: "customer", header: "Client", render: (o) => o.customerName },
     { key: "date", header: "Date", render: (o) => formatDate(o.createdAt) },
     { key: "total", header: "Total", render: (o) => formatPrice(o.total, o.currency) },
@@ -27,9 +31,22 @@ export default function SellerOrdersPage() {
       <Seo title="Mes commandes" noIndex />
       <PageHeader title="Commandes" description="Commandes contenant vos produits." />
 
-      <SearchBar value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Numéro, client…" className="max-w-sm" />
+      <SearchBar
+        value={search}
+        onChange={(v) => {
+          setSearch(v);
+          setPage(1);
+        }}
+        placeholder="Numéro, client…"
+        className="max-w-sm"
+      />
 
-      <DataTable columns={columns} data={data?.items ?? []} rowKey={(o) => o.id} isLoading={isLoading} />
+      <DataTable
+        columns={columns}
+        data={data?.items ?? []}
+        rowKey={(o) => o.id}
+        isLoading={isLoading}
+      />
 
       {data && <PaginationControl pagination={data.pagination} onPageChange={setPage} />}
     </div>

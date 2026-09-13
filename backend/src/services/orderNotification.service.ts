@@ -3,6 +3,7 @@ import { env } from "../config/env";
 import { logger } from "../utils/logger";
 import { sendEmail } from "../integrations/email/email.service";
 import { buildOwnerNewOrderEmail } from "../integrations/email/templates/ownerNewOrder.template";
+import { buildOrderConfirmationEmail } from "../integrations/email/templates/orderConfirmation.template";
 
 /**
  * Notifies the store owner by email that a new order has been successfully placed (and,
@@ -44,6 +45,39 @@ export async function notifyOwnerNewOrder(order: IOrder): Promise<void> {
     });
   } catch (error) {
     logger.error("Failed to send owner new-order notification", {
+      orderId: String(order._id),
+      orderNumber: order.orderNumber,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
+
+/**
+ * Sends the customer-facing order confirmation email. Fired once the order is genuinely
+ * confirmed: immediately for manual payment methods (order.service.ts), or on payment
+ * capture for gateway methods (payment.service.ts) — never merely on checkout submission,
+ * which could be misleading if a gateway payment then fails.
+ *
+ * Idempotency: same atomic-claim pattern as notifyOwnerNewOrder — see its docstring.
+ */
+export async function notifyCustomerOrderConfirmed(order: IOrder): Promise<void> {
+  const claimed = await Order.findOneAndUpdate(
+    { _id: order._id, customerConfirmationSentAt: { $exists: false } },
+    { customerConfirmationSentAt: new Date() },
+  );
+  if (!claimed) {
+    return; // already sent (or lost the race to a concurrent call) — no-op
+  }
+
+  try {
+    const { subject, html, text } = buildOrderConfirmationEmail(order);
+    await sendEmail({ to: order.customerEmail, subject, html, text });
+    logger.info("Customer order confirmation sent", {
+      orderId: String(order._id),
+      orderNumber: order.orderNumber,
+    });
+  } catch (error) {
+    logger.error("Failed to send customer order confirmation", {
       orderId: String(order._id),
       orderNumber: order.orderNumber,
       error: error instanceof Error ? error.message : String(error),

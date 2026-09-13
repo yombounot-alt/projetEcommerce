@@ -40,7 +40,9 @@ export const authService = {
     return data;
   },
 
-  async register(payload: Omit<RegisterFormValues, "confirmPassword" | "acceptTerms">): Promise<AuthSession> {
+  async register(
+    payload: Omit<RegisterFormValues, "confirmPassword" | "acceptTerms">,
+  ): Promise<AuthSession> {
     if (env.useMocks) {
       const newUser = {
         id: `user-${Date.now()}`,
@@ -80,7 +82,10 @@ export const authService = {
       void password;
       return mockDelay({ message: "Votre mot de passe a été réinitialisé avec succès." }, 500);
     }
-    const { data } = await httpClient.post<{ message: string }>("/auth/reset-password", { token, password });
+    const { data } = await httpClient.post<{ message: string }>("/auth/reset-password", {
+      token,
+      password,
+    });
     return data;
   },
 
@@ -96,7 +101,11 @@ export const authService = {
     if (env.useMocks) {
       const user = mockUsers.find((u) => u.id === userId);
       if (!user) {
-        throw new ApiError({ message: "Utilisateur introuvable.", code: "USER_NOT_FOUND", status: 404 });
+        throw new ApiError({
+          message: "Utilisateur introuvable.",
+          code: "USER_NOT_FOUND",
+          status: 404,
+        });
       }
       Object.assign(user, changes);
       return mockDelay(user, 300);
@@ -105,13 +114,21 @@ export const authService = {
     return data;
   },
 
-  async changePassword(userId: string, currentPassword: string, newPassword: string): Promise<AuthSession> {
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<AuthSession> {
     if (env.useMocks) {
       void currentPassword;
       void newPassword;
       const user = mockUsers.find((u) => u.id === userId);
       if (!user) {
-        throw new ApiError({ message: "Utilisateur introuvable.", code: "USER_NOT_FOUND", status: 404 });
+        throw new ApiError({
+          message: "Utilisateur introuvable.",
+          code: "USER_NOT_FOUND",
+          status: 404,
+        });
       }
       return mockDelay(
         {

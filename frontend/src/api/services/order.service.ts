@@ -33,7 +33,7 @@ export interface CreateOrderAddress {
  * envoie que l'identité produit/quantité — pas de prix, nom ou image côté client.
  */
 export interface CreateOrderPayload {
-  items: { productId: string; quantity: number }[];
+  items: { productId: string; variantId?: string; quantity: number }[];
   shippingAddress: CreateOrderAddress;
   billingAddress?: CreateOrderAddress;
   shippingMethod: "standard" | "express";
@@ -42,7 +42,12 @@ export interface CreateOrderPayload {
   notes?: string;
 }
 
-const KNOWN_COUPONS: { code: string; type: "percentage" | "fixed"; value: number; minSubtotal?: number }[] = [
+const KNOWN_COUPONS: {
+  code: string;
+  type: "percentage" | "fixed";
+  value: number;
+  minSubtotal?: number;
+}[] = [
   { code: "WELCOME10", type: "percentage", value: 10 },
   { code: "FREESHIP", type: "fixed", value: STANDARD_SHIPPING_COST },
 ];
@@ -128,13 +133,18 @@ export const orderService = {
       const user = useAuthStore.getState().user;
       const items = payload.items.map((line, index) => {
         const product = mockProducts.find((p) => p.id === line.productId);
-        const unitPrice = product?.price ?? 0;
+        const variant = line.variantId
+          ? product?.variants.find((v) => v.id === line.variantId)
+          : undefined;
+        const unitPrice = variant?.price ?? product?.price ?? 0;
         return {
           id: `item-${Date.now()}-${index}`,
           productId: line.productId,
+          variantId: variant?.id,
+          variantLabel: variant ? Object.values(variant.attributes).join(" / ") : undefined,
           productName: product?.name ?? "Produit",
-          productImage: product?.images[0] ?? "",
-          sku: product?.sku ?? line.productId,
+          productImage: variant?.image ?? product?.images[0] ?? "",
+          sku: variant?.sku ?? product?.sku ?? line.productId,
           unitPrice,
           quantity: line.quantity,
           subtotal: Number((unitPrice * line.quantity).toFixed(2)),
@@ -160,7 +170,12 @@ export const orderService = {
           )
         : 0;
       const total = Number((subtotal + shippingCost - discount).toFixed(2));
-      const shippingAddress = { id: "temp", isDefault: false, label: "Shipping", ...payload.shippingAddress };
+      const shippingAddress = {
+        id: "temp",
+        isDefault: false,
+        label: "Shipping",
+        ...payload.shippingAddress,
+      };
       const billingAddress = payload.billingAddress
         ? { id: "temp-billing", isDefault: false, label: "Billing", ...payload.billingAddress }
         : { ...shippingAddress, id: "temp-billing" };
@@ -219,7 +234,9 @@ export const orderService = {
         throw new Error("Code promo invalide ou expiré.");
       }
       if (coupon.minSubtotal && subtotal < coupon.minSubtotal) {
-        throw new Error(`Ce code nécessite un panier minimum de ${formatPrice(coupon.minSubtotal)}.`);
+        throw new Error(
+          `Ce code nécessite un panier minimum de ${formatPrice(coupon.minSubtotal)}.`,
+        );
       }
       return mockDelay(coupon, 300);
     }

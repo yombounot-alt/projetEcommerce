@@ -29,9 +29,7 @@ export function DashboardLayout({ navItems, sectionLabel, children }: DashboardL
           isMobileOpen={isMobileNavOpen}
           onMobileOpenChange={setIsMobileNavOpen}
         />
-        <main className="flex-1 bg-secondary/20 p-4 sm:p-6 lg:p-8">
-          {children ?? <Outlet />}
-        </main>
+        <main className="flex-1 bg-secondary/20 p-4 sm:p-6 lg:p-8">{children ?? <Outlet />}</main>
       </div>
     </div>
   );

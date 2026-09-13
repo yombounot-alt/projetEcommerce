@@ -5,9 +5,30 @@ import type { PaginatedResponse } from "@/types/common.types";
 import type { AppNotification } from "@/types/notification.types";
 
 let mockNotifications: AppNotification[] = [
-  { id: "1", type: "ORDER", title: "Nouvelle commande", message: "Nouvelle commande #LUM-100045 reçue", isRead: false, createdAt: new Date(Date.now() - 15 * 60_000).toISOString() },
-  { id: "2", type: "ACCOUNT", title: "Stock faible", message: "Le stock de « Casque audio Pro » est faible", isRead: false, createdAt: new Date(Date.now() - 3 * 3_600_000).toISOString() },
-  { id: "3", type: "ACCOUNT", title: "Nouvel avis", message: "Un nouvel avis 5★ a été publié", isRead: true, createdAt: new Date(Date.now() - 26 * 3_600_000).toISOString() },
+  {
+    id: "1",
+    type: "ORDER",
+    title: "Nouvelle commande",
+    message: "Nouvelle commande #LUM-100045 reçue",
+    isRead: false,
+    createdAt: new Date(Date.now() - 15 * 60_000).toISOString(),
+  },
+  {
+    id: "2",
+    type: "ACCOUNT",
+    title: "Stock faible",
+    message: "Le stock de « Casque audio Pro » est faible",
+    isRead: false,
+    createdAt: new Date(Date.now() - 3 * 3_600_000).toISOString(),
+  },
+  {
+    id: "3",
+    type: "ACCOUNT",
+    title: "Nouvel avis",
+    message: "Un nouvel avis 5★ a été publié",
+    isRead: true,
+    createdAt: new Date(Date.now() - 26 * 3_600_000).toISOString(),
+  },
 ];
 
 export const notificationService = {

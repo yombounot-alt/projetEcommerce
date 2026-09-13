@@ -10,6 +10,27 @@ export interface IProductDimensions {
   unit: "cm" | "in";
 }
 
+/** One purchasable combination (e.g. "Rouge / M") of a variant product's options. */
+export interface IProductVariant {
+  _id: Types.ObjectId;
+  sku: string;
+  /** e.g. { Taille: "M", Couleur: "Rouge" } — keys mirror IProduct.variantOptions[].name. */
+  attributes: Record<string, string>;
+  /** Overrides the parent product's price/compareAtPrice when set. */
+  price?: number;
+  compareAtPrice?: number;
+  availableStock: number;
+  reservedStock: number;
+  soldStock: number;
+  image?: string;
+}
+
+/** One option group a variant product is sold by, e.g. { name: "Taille", values: ["S","M","L"] }. */
+export interface IProductVariantOption {
+  name: string;
+  values: string[];
+}
+
 export interface IProduct extends Document {
   _id: Types.ObjectId;
   sku: string;
@@ -36,6 +57,16 @@ export interface IProduct extends Document {
   rating: number;
   reviewCount: number;
   tags: string[];
+  /** Option groups this product is sold by (e.g. Taille, Couleur) — empty for simple products. */
+  variantOptions: IProductVariantOption[];
+  /**
+   * Purchasable combinations when this product has variants. When non-empty, the top-level
+   * price/availableStock/reservedStock/soldStock become a denormalized aggregate (min price,
+   * summed stock) recomputed by product.service.ts on every variant write — kept in sync so
+   * search/filter/sort/list-display code never needs to special-case variant products. Real
+   * reservations always happen on the variant itself (see stock.service.ts).
+   */
+  variants: IProductVariant[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -46,6 +77,25 @@ const dimensionsSchema = new Schema<IProductDimensions>(
     height: { type: Number, required: true, min: 0 },
     depth: { type: Number, required: true, min: 0 },
     unit: { type: String, enum: ["cm", "in"], default: "cm" },
+  },
+  { _id: false },
+);
+
+const productVariantSchema = new Schema<IProductVariant>({
+  sku: { type: String, required: true, uppercase: true, trim: true },
+  attributes: { type: Schema.Types.Mixed, required: true },
+  price: { type: Number, min: 0 },
+  compareAtPrice: { type: Number, min: 0 },
+  availableStock: { type: Number, required: true, default: 0, min: 0 },
+  reservedStock: { type: Number, required: true, default: 0, min: 0 },
+  soldStock: { type: Number, required: true, default: 0, min: 0 },
+  image: { type: String },
+});
+
+const productVariantOptionSchema = new Schema<IProductVariantOption>(
+  {
+    name: { type: String, required: true, trim: true },
+    values: { type: [String], required: true },
   },
   { _id: false },
 );
@@ -85,6 +135,8 @@ const productSchema = new Schema<IProduct>(
     rating: { type: Number, default: 0, min: 0, max: 5 },
     reviewCount: { type: Number, default: 0, min: 0 },
     tags: { type: [String], default: [], index: true },
+    variantOptions: { type: [productVariantOptionSchema], default: [] },
+    variants: { type: [productVariantSchema], default: [] },
   },
   { timestamps: true },
 );

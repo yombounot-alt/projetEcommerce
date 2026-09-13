@@ -10,6 +10,7 @@ import { StarRating } from "@/components/common/StarRating";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { APP_URL } from "@/constants/app.constants";
 import { ROUTES } from "@/constants/routes.constants";
 import { useCart } from "@/features/cart/api/useCart";
 import { useProductQuery } from "@/features/products/api/useProductQuery";
@@ -29,6 +30,7 @@ export default function ProductDetailsPage() {
   const isWishlisted = hasWishlist(product?.id ?? "");
 
   const [quantity, setQuantity] = useState(1);
+  const [selectedAttributes, setSelectedAttributes] = useState<Record<string, string>>({});
 
   if (isLoading) {
     return <LoadingState className="min-h-[60vh]" label="Chargement du produit…" />;
@@ -52,20 +54,51 @@ export default function ProductDetailsPage() {
     );
   }
 
-  const isOutOfStock = product.stock <= 0;
-  const maxQuantity = Math.max(1, Math.min(product.stock, 10));
+  const hasVariants = product.variantOptions.length > 0;
+  const isSelectionComplete = product.variantOptions.every((option) =>
+    Boolean(selectedAttributes[option.name]),
+  );
+  const selectedVariant =
+    hasVariants && isSelectionComplete
+      ? product.variants.find((variant) =>
+          product.variantOptions.every(
+            (option) => variant.attributes[option.name] === selectedAttributes[option.name],
+          ),
+        )
+      : undefined;
+
+  const effectivePrice = selectedVariant?.price ?? product.price;
+  const effectiveCompareAtPrice = selectedVariant?.compareAtPrice ?? product.compareAtPrice;
+  const effectiveStock = selectedVariant ? selectedVariant.stock : product.stock;
+  const effectiveImage = selectedVariant?.image ?? product.images[0];
+  const isOutOfStock = hasVariants
+    ? isSelectionComplete
+      ? effectiveStock <= 0
+      : false
+    : product.stock <= 0;
+  const canAddToCart = hasVariants ? isSelectionComplete && effectiveStock > 0 : !isOutOfStock;
+  const maxQuantity = Math.max(1, Math.min(effectiveStock, 10));
+
+  function handleSelectAttribute(optionName: string, value: string) {
+    setSelectedAttributes((prev) => ({ ...prev, [optionName]: value }));
+    setQuantity(1);
+  }
 
   function handleAddToCart() {
-    if (!product || isOutOfStock) return;
+    if (!product || !canAddToCart) return;
     addItem({
       productId: product.id,
+      variantId: selectedVariant?.id,
+      variantLabel: selectedVariant
+        ? Object.values(selectedVariant.attributes).join(" / ")
+        : undefined,
       name: product.name,
       slug: product.slug,
-      image: product.images[0],
-      price: product.price,
-      compareAtPrice: product.compareAtPrice,
+      image: effectiveImage,
+      price: effectivePrice,
+      compareAtPrice: effectiveCompareAtPrice,
       quantity,
-      stock: product.stock,
+      stock: effectiveStock,
     });
     toast.success(`${product.name} ajouté au panier.`);
   }
@@ -83,12 +116,42 @@ export default function ProductDetailsPage() {
         description={product.shortDescription}
         image={product.images[0]}
         canonicalPath={ROUTES.product(product.slug)}
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: product.name,
+          description: product.shortDescription,
+          image: product.images,
+          sku: product.sku,
+          ...(product.brand && { brand: { "@type": "Brand", name: product.brand.name } }),
+          offers: {
+            "@type": "Offer",
+            url: `${APP_URL}${ROUTES.product(product.slug)}`,
+            priceCurrency: product.currency,
+            price: effectivePrice,
+            availability: isOutOfStock
+              ? "https://schema.org/OutOfStock"
+              : "https://schema.org/InStock",
+          },
+          ...(product.reviewCount > 0 && {
+            aggregateRating: {
+              "@type": "AggregateRating",
+              ratingValue: product.rating,
+              reviewCount: product.reviewCount,
+            },
+          }),
+        }}
       />
 
       <nav className="mb-6 text-sm text-muted-foreground">
-        <Link to={ROUTES.shop} className="hover:text-foreground">Boutique</Link>
+        <Link to={ROUTES.shop} className="hover:text-foreground">
+          Boutique
+        </Link>
         <span className="mx-2">/</span>
-        <Link to={`${ROUTES.shop}?category=${product.category.slug}`} className="hover:text-foreground">
+        <Link
+          to={`${ROUTES.shop}?category=${product.category.slug}`}
+          className="hover:text-foreground"
+        >
           {product.category.name}
         </Link>
       </nav>
@@ -99,7 +162,9 @@ export default function ProductDetailsPage() {
         <div className="space-y-6">
           <div className="space-y-2">
             {product.brand && (
-              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{product.brand.name}</p>
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                {product.brand.name}
+              </p>
             )}
             <h1 className="font-heading text-3xl font-semibold text-foreground">{product.name}</h1>
             <div className="flex items-center gap-2">
@@ -110,19 +175,59 @@ export default function ProductDetailsPage() {
             </div>
           </div>
 
-          <PriceDisplay price={product.price} compareAtPrice={product.compareAtPrice} currency={product.currency} size="lg" />
+          <PriceDisplay
+            price={effectivePrice}
+            compareAtPrice={effectiveCompareAtPrice}
+            currency={product.currency}
+            size="lg"
+          />
 
           <p className="text-sm text-muted-foreground">{product.shortDescription}</p>
 
           <div>
-            {isOutOfStock ? (
+            {hasVariants && !isSelectionComplete ? (
+              <Badge variant="outline">Sélectionnez les options</Badge>
+            ) : isOutOfStock ? (
               <Badge variant="outline">Rupture de stock</Badge>
-            ) : product.stock < 10 ? (
-              <Badge variant="warning">Plus que {product.stock} en stock</Badge>
+            ) : effectiveStock < 10 ? (
+              <Badge variant="warning">Plus que {effectiveStock} en stock</Badge>
             ) : (
               <Badge variant="success">En stock</Badge>
             )}
           </div>
+
+          {hasVariants && (
+            <div className="space-y-4">
+              {product.variantOptions.map((option) => (
+                <div key={option.name} className="space-y-2">
+                  <p className="text-sm font-medium text-foreground">{option.name}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {option.values.map((value) => {
+                      const isSelected = selectedAttributes[option.name] === value;
+                      return (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => handleSelectAttribute(option.name, value)}
+                          aria-pressed={isSelected}
+                          className={`rounded-md border px-3 py-1.5 text-sm transition-colors ${
+                            isSelected
+                              ? "border-foreground bg-foreground text-background"
+                              : "border-input bg-background text-foreground hover:border-foreground"
+                          }`}
+                        >
+                          {value}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+              {isSelectionComplete && !selectedVariant && (
+                <p className="text-sm text-destructive">Cette combinaison n'est pas disponible.</p>
+              )}
+            </div>
+          )}
 
           <Separator />
 
@@ -132,7 +237,7 @@ export default function ProductDetailsPage() {
                 type="button"
                 variant="ghost"
                 size="icon"
-                disabled={quantity <= 1}
+                disabled={quantity <= 1 || !canAddToCart}
                 onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                 aria-label="Diminuer la quantité"
               >
@@ -143,7 +248,7 @@ export default function ProductDetailsPage() {
                 type="button"
                 variant="ghost"
                 size="icon"
-                disabled={quantity >= maxQuantity}
+                disabled={quantity >= maxQuantity || !canAddToCart}
                 onClick={() => setQuantity((q) => Math.min(maxQuantity, q + 1))}
                 aria-label="Augmenter la quantité"
               >
@@ -151,7 +256,12 @@ export default function ProductDetailsPage() {
               </Button>
             </div>
 
-            <Button size="lg" onClick={handleAddToCart} disabled={isOutOfStock} className="flex-1 sm:flex-none">
+            <Button
+              size="lg"
+              onClick={handleAddToCart}
+              disabled={!canAddToCart}
+              className="flex-1 sm:flex-none"
+            >
               <ShoppingBagIcon /> Ajouter au panier
             </Button>
 
@@ -170,11 +280,16 @@ export default function ProductDetailsPage() {
           <Separator />
 
           <div className="space-y-2 text-sm">
-            <p><span className="font-medium text-foreground">Référence :</span> <span className="text-muted-foreground">{product.sku}</span></p>
+            <p>
+              <span className="font-medium text-foreground">Référence :</span>{" "}
+              <span className="text-muted-foreground">{selectedVariant?.sku ?? product.sku}</span>
+            </p>
             {product.tags.length > 0 && (
               <div className="flex flex-wrap gap-1.5 pt-1">
                 {product.tags.map((tag) => (
-                  <Badge key={tag} variant="secondary">{tag}</Badge>
+                  <Badge key={tag} variant="secondary">
+                    {tag}
+                  </Badge>
                 ))}
               </div>
             )}
@@ -184,7 +299,9 @@ export default function ProductDetailsPage() {
 
       <section className="mx-auto mt-16 max-w-3xl space-y-4">
         <h2 className="font-heading text-2xl font-semibold text-foreground">Description</h2>
-        <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">{product.description}</p>
+        <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+          {product.description}
+        </p>
       </section>
 
       <section id="avis" className="mx-auto mt-16 max-w-3xl scroll-mt-20">
@@ -194,7 +311,9 @@ export default function ProductDetailsPage() {
 
       {relatedProducts && relatedProducts.length > 0 && (
         <section className="mt-16">
-          <h2 className="mb-6 font-heading text-2xl font-semibold text-foreground">Vous aimerez aussi</h2>
+          <h2 className="mb-6 font-heading text-2xl font-semibold text-foreground">
+            Vous aimerez aussi
+          </h2>
           <ProductGrid products={relatedProducts} isLoading={relatedLoading} skeletonCount={4} />
         </section>
       )}

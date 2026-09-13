@@ -30,7 +30,10 @@ export default function AboutPage() {
   return (
     <div className="container-page py-10">
       <Seo title="À propos" canonicalPath={ROUTES.about} />
-      <PageHeader title="À propos de Luméra" description="Qui nous sommes et pourquoi nous faisons ce métier." />
+      <PageHeader
+        title="À propos de Luméra"
+        description="Qui nous sommes et pourquoi nous faisons ce métier."
+      />
       <ContentSections sections={SECTIONS} />
     </div>
   );

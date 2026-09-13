@@ -7,7 +7,14 @@ import { getRelatedProducts, mockProducts } from "@/mocks/products";
 import { getReviewsByProduct, mockReviews } from "@/mocks/reviews";
 import { useAuthStore } from "@/store/authStore";
 import type { PaginatedResponse } from "@/types/common.types";
-import type { Category, Product, ProductFilters, ProductListItem, ProductReview } from "@/types/product.types";
+import type {
+  Category,
+  Product,
+  ProductFilters,
+  ProductListItem,
+  ProductReview,
+  ProductVariantOption,
+} from "@/types/product.types";
 
 function applyFilters(filters: ProductFilters): Product[] {
   let results = [...mockProducts].filter((p) => p.status === "published");
@@ -68,10 +75,39 @@ function applyFilters(filters: ProductFilters): Product[] {
 
 export function toListItem(product: Product): ProductListItem {
   const {
-    id, sku, name, slug, price, compareAtPrice, currency, images,
-    category, stock, status, rating, reviewCount, isFeatured, isNew,
+    id,
+    sku,
+    name,
+    slug,
+    price,
+    compareAtPrice,
+    currency,
+    images,
+    category,
+    stock,
+    status,
+    rating,
+    reviewCount,
+    isFeatured,
+    isNew,
   } = product;
-  return { id, sku, name, slug, price, compareAtPrice, currency, images, category, stock, status, rating, reviewCount, isFeatured, isNew };
+  return {
+    id,
+    sku,
+    name,
+    slug,
+    price,
+    compareAtPrice,
+    currency,
+    images,
+    category,
+    stock,
+    status,
+    rating,
+    reviewCount,
+    isFeatured,
+    isNew,
+  };
 }
 
 function slugifyName(name: string): string {
@@ -98,6 +134,16 @@ export interface ProductInput {
   weightKg?: number;
   images: string[];
   status: Product["status"];
+  variantOptions?: ProductVariantOption[];
+  variants?: Array<{
+    id?: string;
+    sku: string;
+    attributes: Record<string, string>;
+    price?: number;
+    compareAtPrice?: number;
+    availableStock: number;
+    image?: string;
+  }>;
 }
 
 export interface ReviewInput {
@@ -126,7 +172,9 @@ export const productService = {
       });
     }
 
-    const { data } = await httpClient.get<PaginatedResponse<ProductListItem>>("/products", { params: filters });
+    const { data } = await httpClient.get<PaginatedResponse<ProductListItem>>("/products", {
+      params: filters,
+    });
     return data;
   },
 
@@ -143,7 +191,9 @@ export const productService = {
     if (env.useMocks) {
       return mockDelay(getRelatedProducts(product, limit).map(toListItem), 200);
     }
-    const { data } = await httpClient.get<ProductListItem[]>(`/products/${product.id}/related`, { params: { limit } });
+    const { data } = await httpClient.get<ProductListItem[]>(`/products/${product.id}/related`, {
+      params: { limit },
+    });
     return data;
   },
 
@@ -191,10 +241,14 @@ export const productService = {
 
   async getFeatured(limit = 8): Promise<ProductListItem[]> {
     if (env.useMocks) {
-      const featured = mockProducts.filter((p) => p.isFeatured && p.status === "published").slice(0, limit);
+      const featured = mockProducts
+        .filter((p) => p.isFeatured && p.status === "published")
+        .slice(0, limit);
       return mockDelay(featured.map(toListItem), 250);
     }
-    const { data } = await httpClient.get<ProductListItem[]>("/products/featured", { params: { limit } });
+    const { data } = await httpClient.get<ProductListItem[]>("/products/featured", {
+      params: { limit },
+    });
     return data;
   },
 
@@ -206,7 +260,9 @@ export const productService = {
         .slice(0, limit);
       return mockDelay(newest.map(toListItem), 250);
     }
-    const { data } = await httpClient.get<ProductListItem[]>("/products/new", { params: { limit } });
+    const { data } = await httpClient.get<ProductListItem[]>("/products/new", {
+      params: { limit },
+    });
     return data;
   },
 
@@ -234,9 +290,13 @@ export const productService = {
         currency: "GNF",
         images: input.images,
         categoryId: input.categoryId,
-        category: category ? { id: category.id, name: category.name, slug: category.slug } : { id: "", name: "", slug: "" },
+        category: category
+          ? { id: category.id, name: category.name, slug: category.slug }
+          : { id: "", name: "", slug: "" },
         stock: input.stock,
         weightKg: input.weightKg,
+        variantOptions: input.variantOptions ?? [],
+        variants: [],
         status: input.status,
         rating: 0,
         reviewCount: 0,
@@ -263,7 +323,8 @@ export const productService = {
       if (categoryId) {
         const category = mockCategories.find((c) => c.id === categoryId);
         product.categoryId = categoryId;
-        if (category) product.category = { id: category.id, name: category.name, slug: category.slug };
+        if (category)
+          product.category = { id: category.id, name: category.name, slug: category.slug };
       }
       product.updatedAt = new Date().toISOString();
       return mockDelay(product, 400);

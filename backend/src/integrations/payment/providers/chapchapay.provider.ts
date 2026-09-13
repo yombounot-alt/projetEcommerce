@@ -216,9 +216,6 @@ function mapChapchaPayStatus(status: string): PaymentProviderStatus {
     case "error":
       return "failed";
     default:
-      throw new BadRequestError(
-        `Statut ChapchaPay inconnu: "${status}"`,
-        "WEBHOOK_UNKNOWN_STATUS",
-      );
+      throw new BadRequestError(`Statut ChapchaPay inconnu: "${status}"`, "WEBHOOK_UNKNOWN_STATUS");
   }
 }

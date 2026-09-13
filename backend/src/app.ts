@@ -12,6 +12,7 @@ import { installFrenchZodErrorMap } from "./config/zodErrorMap";
 import { swaggerSpec } from "./docs/swagger";
 import apiRoutes from "./routes";
 import healthRoutes from "./routes/health.routes";
+import sitemapRoutes from "./routes/sitemap.routes";
 import paymentRoutes from "./routes/payment.routes";
 import { errorHandler, notFoundHandler } from "./middlewares/errorHandler";
 import { globalLimiter } from "./middlewares/rateLimiters";
@@ -81,6 +82,7 @@ export function createApp(): Express {
   app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
   app.use("/api/health", healthRoutes);
+  app.use(sitemapRoutes);
   app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
   // payments/webhook must not go through the json-parsing api router since it needs the raw body.

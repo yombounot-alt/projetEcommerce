@@ -22,7 +22,8 @@ export function AuthLayout() {
               « Une expérience d'achat fluide, élégante, et pensée pour durer. »
             </p>
             <p className="text-sm text-primary-foreground/70">
-              L'équipe Luméra — au service de vos achats depuis le premier clic jusqu'à la livraison.
+              L'équipe Luméra — au service de vos achats depuis le premier clic jusqu'à la
+              livraison.
             </p>
           </blockquote>
         </div>

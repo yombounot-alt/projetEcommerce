@@ -7,9 +7,18 @@ interface SeoProps {
   image?: string;
   canonicalPath?: string;
   noIndex?: boolean;
+  /** Arbitrary schema.org object (e.g. Product, BreadcrumbList) rendered as JSON-LD. */
+  jsonLd?: Record<string, unknown>;
 }
 
-export function Seo({ title, description, image, canonicalPath, noIndex = false }: SeoProps) {
+export function Seo({
+  title,
+  description,
+  image,
+  canonicalPath,
+  noIndex = false,
+  jsonLd,
+}: SeoProps) {
   const fullTitle = title === APP_NAME ? title : `${title} · ${APP_NAME}`;
   const canonicalUrl = canonicalPath ? `${APP_URL}${canonicalPath}` : undefined;
 
@@ -30,6 +39,8 @@ export function Seo({ title, description, image, canonicalPath, noIndex = false 
       <meta name="twitter:title" content={fullTitle} />
       {description && <meta name="twitter:description" content={description} />}
       {image && <meta name="twitter:image" content={image} />}
+
+      {jsonLd && <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>}
     </Helmet>
   );
 }

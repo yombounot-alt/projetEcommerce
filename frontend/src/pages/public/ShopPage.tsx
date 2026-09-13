@@ -7,7 +7,10 @@ import { ProductFilters } from "@/features/products/components/ProductFilters";
 import { ProductGrid } from "@/features/products/components/ProductGrid";
 import { ProductSortSelect } from "@/features/products/components/ProductSortSelect";
 import { useProductsQuery } from "@/features/products/api/useProductsQuery";
-import type { ProductFilters as ProductFiltersValue, ProductSortOption } from "@/types/product.types";
+import type {
+  ProductFilters as ProductFiltersValue,
+  ProductSortOption,
+} from "@/types/product.types";
 
 function parseFilters(params: URLSearchParams): ProductFiltersValue {
   return {

@@ -15,12 +15,19 @@ export default function OrdersPage() {
   return (
     <div className="container-page py-10">
       <Seo title="Mes commandes" canonicalPath={ROUTES.orders} noIndex />
-      <PageHeader title="Mes commandes" description="Retrouvez l'historique et le statut de vos commandes." />
+      <PageHeader
+        title="Mes commandes"
+        description="Retrouvez l'historique et le statut de vos commandes."
+      />
 
       {isLoading && <LoadingState label="Chargement de vos commandes…" />}
 
       {!isLoading && orders && orders.length === 0 && (
-        <EmptyState icon={PackageIcon} title="Aucune commande" description="Vous n'avez pas encore passé de commande." />
+        <EmptyState
+          icon={PackageIcon}
+          title="Aucune commande"
+          description="Vous n'avez pas encore passé de commande."
+        />
       )}
 
       {!isLoading && orders && orders.length > 0 && (

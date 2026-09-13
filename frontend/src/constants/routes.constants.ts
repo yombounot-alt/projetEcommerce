@@ -46,6 +46,7 @@ export const ROUTES = {
     orderDetails: (id: string) => `/admin/orders/${id}`,
     users: "/admin/users",
     categories: "/admin/categories",
+    coupons: "/admin/coupons",
     settings: "/admin/settings",
   },
 

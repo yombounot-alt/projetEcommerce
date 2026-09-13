@@ -15,8 +15,15 @@ function useCartMutation() {
 export function useAddCartItemMutation() {
   const { onSuccess } = useCartMutation();
   return useMutation({
-    mutationFn: ({ productId, quantity }: { productId: string; quantity: number }) =>
-      cartService.addItem(productId, quantity),
+    mutationFn: ({
+      productId,
+      quantity,
+      variantId,
+    }: {
+      productId: string;
+      quantity: number;
+      variantId?: string;
+    }) => cartService.addItem(productId, quantity, variantId),
     onSuccess,
   });
 }
@@ -24,8 +31,15 @@ export function useAddCartItemMutation() {
 export function useUpdateCartItemMutation() {
   const { onSuccess } = useCartMutation();
   return useMutation({
-    mutationFn: ({ productId, quantity }: { productId: string; quantity: number }) =>
-      cartService.updateItem(productId, quantity),
+    mutationFn: ({
+      productId,
+      quantity,
+      variantId,
+    }: {
+      productId: string;
+      quantity: number;
+      variantId?: string;
+    }) => cartService.updateItem(productId, quantity, variantId),
     onSuccess,
   });
 }
@@ -33,7 +47,8 @@ export function useUpdateCartItemMutation() {
 export function useRemoveCartItemMutation() {
   const { onSuccess } = useCartMutation();
   return useMutation({
-    mutationFn: (productId: string) => cartService.removeItem(productId),
+    mutationFn: ({ productId, variantId }: { productId: string; variantId?: string }) =>
+      cartService.removeItem(productId, variantId),
     onSuccess,
   });
 }
@@ -43,7 +58,11 @@ export function useClearCartMutation() {
   return useMutation({
     mutationFn: () => cartService.clear(),
     onSuccess: () => {
-      queryClient.setQueryData(queryKeys.cart.all, { items: [], subtotal: 0, itemCount: 0 } satisfies CartDTO);
+      queryClient.setQueryData(queryKeys.cart.all, {
+        items: [],
+        subtotal: 0,
+        itemCount: 0,
+      } satisfies CartDTO);
     },
   });
 }

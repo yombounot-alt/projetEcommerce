@@ -41,7 +41,10 @@ export default function TermsPage() {
   return (
     <div className="container-page py-10">
       <Seo title="Conditions générales" canonicalPath={ROUTES.legal.terms} />
-      <PageHeader title="Conditions générales de vente" description={`Dernière mise à jour : ${formatDate("2026-08-01")}`} />
+      <PageHeader
+        title="Conditions générales de vente"
+        description={`Dernière mise à jour : ${formatDate("2026-08-01")}`}
+      />
       <ContentSections sections={SECTIONS} />
     </div>
   );

@@ -15,7 +15,13 @@ const sizeClasses = {
   lg: "text-2xl",
 };
 
-export function PriceDisplay({ price, compareAtPrice, currency, size = "md", className }: PriceDisplayProps) {
+export function PriceDisplay({
+  price,
+  compareAtPrice,
+  currency,
+  size = "md",
+  className,
+}: PriceDisplayProps) {
   const discount = computeDiscountPercentage(price, compareAtPrice);
 
   return (

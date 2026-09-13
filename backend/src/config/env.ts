@@ -28,7 +28,9 @@ const envSchema = z.object({
   // Filet de sécurité : au-delà de ce délai, un paiement gateway (ChapchaPay...) resté
   // "pending" sans webhook est considéré expiré (stock relâché) — voir paymentExpiry.service.ts.
   // Ne s'applique pas aux méthodes manuelles (cash_on_delivery/bank_transfer).
-  PAYMENT_PENDING_TIMEOUT_MINUTES: z.coerce.number().int().positive().default(60),
+  // Défaut temporairement à 24h (1440) tant que la fiabilité des webhooks ChapchaPay n'est
+  // pas confirmée — redescendre vers 30-60 min une fois la livraison webhook fiabilisée.
+  PAYMENT_PENDING_TIMEOUT_MINUTES: z.coerce.number().int().positive().default(1440),
 
   SMS_API_URL: z.string().optional().default(""),
   SMS_API_KEY: z.string().optional().default(""),

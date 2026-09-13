@@ -2,7 +2,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { shippingAddressSchema, type ShippingAddressValues } from "@/schemas/checkout.schema";
 
@@ -27,7 +34,9 @@ export function ShippingAddressStep({ defaultValues, onNext, onBack }: ShippingA
           render={({ field }) => (
             <FormItem>
               <FormLabel>Nom complet</FormLabel>
-              <FormControl><Input autoComplete="name" {...field} /></FormControl>
+              <FormControl>
+                <Input autoComplete="name" {...field} />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -38,7 +47,9 @@ export function ShippingAddressStep({ defaultValues, onNext, onBack }: ShippingA
           render={({ field }) => (
             <FormItem>
               <FormLabel>Adresse</FormLabel>
-              <FormControl><Input autoComplete="address-line1" {...field} /></FormControl>
+              <FormControl>
+                <Input autoComplete="address-line1" {...field} />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -49,7 +60,9 @@ export function ShippingAddressStep({ defaultValues, onNext, onBack }: ShippingA
           render={({ field }) => (
             <FormItem>
               <FormLabel>Complément d'adresse (optionnel)</FormLabel>
-              <FormControl><Input autoComplete="address-line2" {...field} /></FormControl>
+              <FormControl>
+                <Input autoComplete="address-line2" {...field} />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -61,7 +74,9 @@ export function ShippingAddressStep({ defaultValues, onNext, onBack }: ShippingA
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Code postal</FormLabel>
-                <FormControl><Input autoComplete="postal-code" {...field} /></FormControl>
+                <FormControl>
+                  <Input autoComplete="postal-code" {...field} />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -72,7 +87,9 @@ export function ShippingAddressStep({ defaultValues, onNext, onBack }: ShippingA
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Ville</FormLabel>
-                <FormControl><Input autoComplete="address-level2" {...field} /></FormControl>
+                <FormControl>
+                  <Input autoComplete="address-level2" {...field} />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -84,7 +101,9 @@ export function ShippingAddressStep({ defaultValues, onNext, onBack }: ShippingA
           render={({ field }) => (
             <FormItem>
               <FormLabel>Pays</FormLabel>
-              <FormControl><Input autoComplete="country-name" {...field} /></FormControl>
+              <FormControl>
+                <Input autoComplete="country-name" {...field} />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -95,7 +114,9 @@ export function ShippingAddressStep({ defaultValues, onNext, onBack }: ShippingA
           render={({ field }) => (
             <FormItem>
               <FormLabel>Téléphone</FormLabel>
-              <FormControl><Input type="tel" autoComplete="tel" {...field} /></FormControl>
+              <FormControl>
+                <Input type="tel" autoComplete="tel" {...field} />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -108,13 +129,19 @@ export function ShippingAddressStep({ defaultValues, onNext, onBack }: ShippingA
               <FormControl>
                 <Checkbox checked={field.value} onCheckedChange={field.onChange} />
               </FormControl>
-              <FormLabel className="font-normal">Enregistrer cette adresse pour mes prochaines commandes</FormLabel>
+              <FormLabel className="font-normal">
+                Enregistrer cette adresse pour mes prochaines commandes
+              </FormLabel>
             </FormItem>
           )}
         />
         <div className="flex gap-3">
-          <Button type="button" variant="outline" onClick={onBack}>Retour</Button>
-          <Button type="submit" size="lg">Continuer</Button>
+          <Button type="button" variant="outline" onClick={onBack}>
+            Retour
+          </Button>
+          <Button type="submit" size="lg">
+            Continuer
+          </Button>
         </div>
       </form>
     </Form>

@@ -1,4 +1,11 @@
-import { LayoutDashboardIcon, LogOutIcon, MapPinIcon, PackageIcon, StoreIcon, UserIcon } from "lucide-react";
+import {
+  LayoutDashboardIcon,
+  LogOutIcon,
+  MapPinIcon,
+  PackageIcon,
+  StoreIcon,
+  UserIcon,
+} from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useLogoutMutation } from "@/features/auth/api/useAuthMutations";
@@ -53,27 +60,39 @@ export function UserMenu() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel>
-          <p className="font-medium text-foreground">{user.firstName} {user.lastName}</p>
+          <p className="font-medium text-foreground">
+            {user.firstName} {user.lastName}
+          </p>
           <p className="truncate text-xs font-normal text-muted-foreground">{user.email}</p>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link to={ROUTES.profile}><UserIcon /> Mon profil</Link>
+          <Link to={ROUTES.profile}>
+            <UserIcon /> Mon profil
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link to={ROUTES.orders}><PackageIcon /> Mes commandes</Link>
+          <Link to={ROUTES.orders}>
+            <PackageIcon /> Mes commandes
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link to={ROUTES.addresses}><MapPinIcon /> Mes adresses</Link>
+          <Link to={ROUTES.addresses}>
+            <MapPinIcon /> Mes adresses
+          </Link>
         </DropdownMenuItem>
         {canAccessAdmin(user.role) && (
           <DropdownMenuItem asChild>
-            <Link to={ROUTES.admin.root}><LayoutDashboardIcon /> Dashboard admin</Link>
+            <Link to={ROUTES.admin.root}>
+              <LayoutDashboardIcon /> Dashboard admin
+            </Link>
           </DropdownMenuItem>
         )}
         {canAccessSeller(user.role) && (
           <DropdownMenuItem asChild>
-            <Link to={ROUTES.seller.root}><StoreIcon /> Espace vendeur</Link>
+            <Link to={ROUTES.seller.root}>
+              <StoreIcon /> Espace vendeur
+            </Link>
           </DropdownMenuItem>
         )}
         <DropdownMenuSeparator />

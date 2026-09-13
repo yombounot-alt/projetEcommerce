@@ -17,7 +17,10 @@ export const authLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   skipSuccessfulRequests: true,
-  message: { message: "Trop de tentatives, veuillez réessayer plus tard.", code: "RATE_LIMITED_AUTH" },
+  message: {
+    message: "Trop de tentatives, veuillez réessayer plus tard.",
+    code: "RATE_LIMITED_AUTH",
+  },
 });
 
 /** OTP send/verify: tightly limited to prevent SMS bombing and brute-force guessing. */
@@ -26,7 +29,10 @@ export const otpLimiter = rateLimit({
   max: 5,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { message: "Trop de demandes de code OTP, veuillez réessayer plus tard.", code: "RATE_LIMITED_OTP" },
+  message: {
+    message: "Trop de demandes de code OTP, veuillez réessayer plus tard.",
+    code: "RATE_LIMITED_OTP",
+  },
 });
 
 /** Payment initialize/webhook endpoints: limited to blunt abuse without blocking legitimate checkout bursts. */

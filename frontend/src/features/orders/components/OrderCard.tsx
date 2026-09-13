@@ -15,7 +15,9 @@ export function OrderCard({ order }: { order: Order }) {
       <div className="space-y-1">
         <div className="flex items-center gap-2">
           <p className="font-medium text-foreground">Commande {order.orderNumber}</p>
-          <Badge variant={ORDER_STATUS_VARIANTS[order.status]}>{ORDER_STATUS_LABELS[order.status]}</Badge>
+          <Badge variant={ORDER_STATUS_VARIANTS[order.status]}>
+            {ORDER_STATUS_LABELS[order.status]}
+          </Badge>
         </div>
         <p className="text-sm text-muted-foreground">
           {formatDate(order.createdAt)} · {order.items.length} article(s)

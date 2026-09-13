@@ -60,7 +60,9 @@ export const userService = {
   },
 
   /** Customers who bought at least one of the seller's own products (backend enforces the scope). */
-  async listSellerCustomers(filters: Pick<UserListFilters, "search" | "page" | "pageSize"> = {}): Promise<PaginatedResponse<User>> {
+  async listSellerCustomers(
+    filters: Pick<UserListFilters, "search" | "page" | "pageSize"> = {},
+  ): Promise<PaginatedResponse<User>> {
     if (env.useMocks) {
       const page = filters.page ?? 1;
       const pageSize = filters.pageSize ?? PAGE_SIZE_DEFAULT;
@@ -77,7 +79,9 @@ export const userService = {
         },
       });
     }
-    const { data } = await httpClient.get<PaginatedResponse<User>>("/seller/customers", { params: filters });
+    const { data } = await httpClient.get<PaginatedResponse<User>>("/seller/customers", {
+      params: filters,
+    });
     return data;
   },
 
@@ -89,7 +93,10 @@ export const userService = {
     return data;
   },
 
-  async updateProfile(id: string, changes: Partial<Pick<User, "firstName" | "lastName" | "email">>): Promise<User> {
+  async updateProfile(
+    id: string,
+    changes: Partial<Pick<User, "firstName" | "lastName" | "email">>,
+  ): Promise<User> {
     if (env.useMocks) {
       const user = getUserById(id);
       if (!user) throw new Error("Utilisateur introuvable.");

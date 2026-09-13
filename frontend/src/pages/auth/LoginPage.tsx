@@ -6,7 +6,14 @@ import { env } from "@/app/config/env";
 import { Seo } from "@/components/common/Seo";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { ROUTES } from "@/constants/routes.constants";
 import { useLoginMutation } from "@/features/auth/api/useAuthMutations";
@@ -27,7 +34,8 @@ export default function LoginPage() {
     loginMutation.mutate(values, {
       onSuccess: (session) => {
         toast.success(`Bienvenue, ${session.user.firstName} !`);
-        const redirectFrom = (location.state as { from?: { pathname: string } } | null)?.from?.pathname;
+        const redirectFrom = (location.state as { from?: { pathname: string } } | null)?.from
+          ?.pathname;
         navigate(redirectFrom ?? ROLE_HOME_ROUTE[session.user.role], { replace: true });
       },
       onError: (error) => {
@@ -40,10 +48,15 @@ export default function LoginPage() {
     <div className="space-y-8">
       <Seo title="Connexion" noIndex />
       <div className="space-y-2">
-        <h1 className="font-heading text-2xl font-semibold text-foreground">Bon retour parmi nous</h1>
+        <h1 className="font-heading text-2xl font-semibold text-foreground">
+          Bon retour parmi nous
+        </h1>
         <p className="text-sm text-muted-foreground">
           Pas encore de compte ?{" "}
-          <Link to={ROUTES.register} className="font-medium text-foreground underline underline-offset-4">
+          <Link
+            to={ROUTES.register}
+            className="font-medium text-foreground underline underline-offset-4"
+          >
             Créer un compte
           </Link>
         </p>
@@ -63,7 +76,12 @@ export default function LoginPage() {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input type="email" autoComplete="email" placeholder="vous@exemple.com" {...field} />
+                  <Input
+                    type="email"
+                    autoComplete="email"
+                    placeholder="vous@exemple.com"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -77,12 +95,20 @@ export default function LoginPage() {
               <FormItem>
                 <div className="flex items-center justify-between">
                   <FormLabel>Mot de passe</FormLabel>
-                  <Link to={ROUTES.forgotPassword} className="text-xs text-muted-foreground hover:text-foreground">
+                  <Link
+                    to={ROUTES.forgotPassword}
+                    className="text-xs text-muted-foreground hover:text-foreground"
+                  >
                     Mot de passe oublié ?
                   </Link>
                 </div>
                 <FormControl>
-                  <Input type="password" autoComplete="current-password" placeholder="••••••••" {...field} />
+                  <Input
+                    type="password"
+                    autoComplete="current-password"
+                    placeholder="••••••••"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

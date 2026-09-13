@@ -1,7 +1,14 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { customerInfoSchema, type CustomerInfoValues } from "@/schemas/checkout.schema";
 
@@ -25,7 +32,9 @@ export function CustomerInfoStep({ defaultValues, onNext }: CustomerInfoStepProp
           render={({ field }) => (
             <FormItem>
               <FormLabel>Email</FormLabel>
-              <FormControl><Input type="email" autoComplete="email" {...field} /></FormControl>
+              <FormControl>
+                <Input type="email" autoComplete="email" {...field} />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -37,7 +46,9 @@ export function CustomerInfoStep({ defaultValues, onNext }: CustomerInfoStepProp
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Prénom</FormLabel>
-                <FormControl><Input autoComplete="given-name" {...field} /></FormControl>
+                <FormControl>
+                  <Input autoComplete="given-name" {...field} />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -48,7 +59,9 @@ export function CustomerInfoStep({ defaultValues, onNext }: CustomerInfoStepProp
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Nom</FormLabel>
-                <FormControl><Input autoComplete="family-name" {...field} /></FormControl>
+                <FormControl>
+                  <Input autoComplete="family-name" {...field} />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -60,12 +73,16 @@ export function CustomerInfoStep({ defaultValues, onNext }: CustomerInfoStepProp
           render={({ field }) => (
             <FormItem>
               <FormLabel>Téléphone</FormLabel>
-              <FormControl><Input type="tel" autoComplete="tel" {...field} /></FormControl>
+              <FormControl>
+                <Input type="tel" autoComplete="tel" {...field} />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit" size="lg" className="w-full sm:w-auto">Continuer</Button>
+        <Button type="submit" size="lg" className="w-full sm:w-auto">
+          Continuer
+        </Button>
       </form>
     </Form>
   );

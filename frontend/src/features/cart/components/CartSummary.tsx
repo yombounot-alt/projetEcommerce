@@ -12,7 +12,13 @@ interface CartSummaryProps {
   children?: ReactNode;
 }
 
-export function CartSummary({ subtotal, shippingCost, discount, couponCode, children }: CartSummaryProps) {
+export function CartSummary({
+  subtotal,
+  shippingCost,
+  discount,
+  couponCode,
+  children,
+}: CartSummaryProps) {
   const total = subtotal + shippingCost - discount;
   const remainingForFreeShipping = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal);
 
@@ -24,7 +30,8 @@ export function CartSummary({ subtotal, shippingCost, discount, couponCode, chil
       <CardContent className="space-y-4">
         {remainingForFreeShipping > 0 && (
           <p className="rounded-md bg-secondary px-3 py-2 text-xs text-secondary-foreground">
-            Plus que {formatPrice(remainingForFreeShipping)} d'achats pour bénéficier de la livraison gratuite.
+            Plus que {formatPrice(remainingForFreeShipping)} d'achats pour bénéficier de la
+            livraison gratuite.
           </p>
         )}
 
@@ -35,7 +42,9 @@ export function CartSummary({ subtotal, shippingCost, discount, couponCode, chil
           </div>
           <div className="flex justify-between text-muted-foreground">
             <span>Livraison</span>
-            <span className="text-foreground">{shippingCost === 0 ? "Gratuite" : formatPrice(shippingCost)}</span>
+            <span className="text-foreground">
+              {shippingCost === 0 ? "Gratuite" : formatPrice(shippingCost)}
+            </span>
           </div>
           {discount > 0 && (
             <div className="flex justify-between text-success">

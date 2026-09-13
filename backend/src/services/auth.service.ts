@@ -117,7 +117,10 @@ export async function refreshSession(rawRefreshToken: string, meta: SessionMeta)
   try {
     payload = verifyRefreshToken(rawRefreshToken);
   } catch {
-    throw new UnauthorizedError("Jeton de rafraîchissement invalide ou expiré", "INVALID_REFRESH_TOKEN");
+    throw new UnauthorizedError(
+      "Jeton de rafraîchissement invalide ou expiré",
+      "INVALID_REFRESH_TOKEN",
+    );
   }
 
   const tokenHash = hashToken(rawRefreshToken);
@@ -244,7 +247,10 @@ export async function resetPassword(token: string, newPassword: string): Promise
   }).select("+passwordResetTokenHash +passwordResetExpires");
 
   if (!user) {
-    throw new BadRequestError("Le jeton de réinitialisation est invalide ou a expiré", "INVALID_RESET_TOKEN");
+    throw new BadRequestError(
+      "Le jeton de réinitialisation est invalide ou a expiré",
+      "INVALID_RESET_TOKEN",
+    );
   }
 
   user.password = await hashPassword(newPassword);

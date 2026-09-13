@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { useCart } from "@/features/cart/api/useCart";
 import { useWishlist } from "@/features/wishlist/api/useWishlist";
 import type { ProductListItem } from "@/types/product.types";
+import { optimizedImageUrl } from "@/utils/image";
 
 export function ProductCard({ product }: { product: ProductListItem }) {
   const { addItem } = useCart();
@@ -46,9 +47,10 @@ export function ProductCard({ product }: { product: ProductListItem }) {
     >
       <div className="relative aspect-square overflow-hidden bg-muted">
         <img
-          src={product.images[0]}
+          src={optimizedImageUrl(product.images[0], 500)}
           alt={product.name}
           loading="lazy"
+          decoding="async"
           className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
         />
 
@@ -87,7 +89,12 @@ export function ProductCard({ product }: { product: ProductListItem }) {
           {product.category.name}
         </p>
         <p className="line-clamp-2 text-sm font-medium text-foreground">{product.name}</p>
-        <PriceDisplay price={product.price} compareAtPrice={product.compareAtPrice} size="sm" className="mt-auto pt-1" />
+        <PriceDisplay
+          price={product.price}
+          compareAtPrice={product.compareAtPrice}
+          size="sm"
+          className="mt-auto pt-1"
+        />
       </div>
     </Link>
   );

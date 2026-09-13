@@ -5,6 +5,7 @@ export type StockMovementType = "IN" | "OUT" | "RESERVED" | "RELEASED" | "ADJUST
 export interface IStockMovement extends Document {
   _id: Types.ObjectId;
   product: Types.ObjectId;
+  variant?: Types.ObjectId;
   type: StockMovementType;
   quantity: number;
   reason: string;
@@ -16,6 +17,7 @@ export interface IStockMovement extends Document {
 const stockMovementSchema = new Schema<IStockMovement>(
   {
     product: { type: Schema.Types.ObjectId, ref: "Product", required: true, index: true },
+    variant: { type: Schema.Types.ObjectId },
     type: {
       type: String,
       enum: ["IN", "OUT", "RESERVED", "RELEASED", "ADJUSTMENT"],

@@ -8,7 +8,10 @@ export function Logo({ className }: { className?: string }) {
   return (
     <Link
       to={ROUTES.home}
-      className={cn("flex items-center gap-2 font-heading text-xl font-semibold tracking-tight text-foreground", className)}
+      className={cn(
+        "flex items-center gap-2 font-heading text-xl font-semibold tracking-tight text-foreground",
+        className,
+      )}
     >
       <span className="flex size-9 items-center justify-center rounded-lg bg-primary p-1">
         <img src={logoMark} alt="" className="size-full object-contain" />

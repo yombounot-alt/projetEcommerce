@@ -10,7 +10,10 @@ export interface BreadcrumbItem {
 
 export function Breadcrumb({ items }: { items: BreadcrumbItem[] }) {
   return (
-    <nav aria-label="Fil d'Ariane" className="flex items-center gap-1.5 text-sm text-muted-foreground">
+    <nav
+      aria-label="Fil d'Ariane"
+      className="flex items-center gap-1.5 text-sm text-muted-foreground"
+    >
       <Link to={ROUTES.home} className="flex items-center hover:text-foreground">
         <HomeIcon className="size-3.5" />
       </Link>

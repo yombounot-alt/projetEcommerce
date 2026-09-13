@@ -2,7 +2,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useChangePasswordMutation } from "@/features/auth/api/useAuthMutations";
 import { changePasswordSchema, type ChangePasswordFormValues } from "@/schemas/auth.schema";
@@ -24,7 +31,9 @@ export function ChangePasswordForm() {
           form.reset();
         },
         onError: (error) => {
-          toast.error(error instanceof Error ? error.message : "Impossible de changer le mot de passe.");
+          toast.error(
+            error instanceof Error ? error.message : "Impossible de changer le mot de passe.",
+          );
         },
       },
     );
@@ -39,7 +48,9 @@ export function ChangePasswordForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Mot de passe actuel</FormLabel>
-              <FormControl><Input type="password" autoComplete="current-password" {...field} /></FormControl>
+              <FormControl>
+                <Input type="password" autoComplete="current-password" {...field} />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -50,7 +61,9 @@ export function ChangePasswordForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Nouveau mot de passe</FormLabel>
-              <FormControl><Input type="password" autoComplete="new-password" {...field} /></FormControl>
+              <FormControl>
+                <Input type="password" autoComplete="new-password" {...field} />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -61,7 +74,9 @@ export function ChangePasswordForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Confirmer le nouveau mot de passe</FormLabel>
-              <FormControl><Input type="password" autoComplete="new-password" {...field} /></FormControl>
+              <FormControl>
+                <Input type="password" autoComplete="new-password" {...field} />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}

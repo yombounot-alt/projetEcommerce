@@ -19,7 +19,10 @@ export const paymentService = {
    * bank_transfer sont réglés manuellement plus tard par un admin/vendeur (statut "pending" ici
    * est normal), les autres méthodes nécessitent une vraie passerelle configurée côté backend.
    */
-  async initialize(orderId: string, method: Order["payment"]["method"]): Promise<InitializePaymentResult> {
+  async initialize(
+    orderId: string,
+    method: Order["payment"]["method"],
+  ): Promise<InitializePaymentResult> {
     if (env.useMocks) {
       const status: PaymentStatus = MANUAL_METHODS.has(method) ? "pending" : "captured";
       const order = getOrderById(orderId);

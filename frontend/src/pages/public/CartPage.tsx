@@ -17,7 +17,8 @@ export default function CartPage() {
   const navigate = useNavigate();
   const [coupon, setCoupon] = useState<Coupon | null>(null);
 
-  const shippingCost = items.length === 0 || subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : STANDARD_SHIPPING_COST;
+  const shippingCost =
+    items.length === 0 || subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : STANDARD_SHIPPING_COST;
   const discount = coupon
     ? coupon.type === "percentage"
       ? Number((subtotal * (coupon.value / 100)).toFixed(2))
@@ -56,12 +57,17 @@ export default function CartPage() {
       <div className="grid gap-10 lg:grid-cols-[1fr_22rem]">
         <div className="divide-y divide-border rounded-xl border border-border px-4 sm:px-6">
           {items.map((item) => (
-            <CartLineItem key={item.productId} item={item} />
+            <CartLineItem key={`${item.productId}-${item.variantId ?? ""}`} item={item} />
           ))}
         </div>
 
         <div className="space-y-4">
-          <CartSummary subtotal={subtotal} shippingCost={shippingCost} discount={discount} couponCode={coupon?.code}>
+          <CartSummary
+            subtotal={subtotal}
+            shippingCost={shippingCost}
+            discount={discount}
+            couponCode={coupon?.code}
+          >
             <Button size="lg" className="w-full" onClick={() => navigate(ROUTES.checkout)}>
               Passer commande <ArrowRightIcon />
             </Button>

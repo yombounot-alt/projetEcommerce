@@ -70,7 +70,10 @@ export async function updateCategory(
 export async function deleteCategory(id: string) {
   const inUse = await Product.exists({ category: id });
   if (inUse) {
-    throw new ConflictError("Impossible de supprimer une catégorie contenant encore des produits", "CATEGORY_IN_USE");
+    throw new ConflictError(
+      "Impossible de supprimer une catégorie contenant encore des produits",
+      "CATEGORY_IN_USE",
+    );
   }
   const category = await Category.findByIdAndDelete(id);
   if (!category) {

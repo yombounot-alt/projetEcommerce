@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { Payment, type IPayment } from "../models/Payment";
 import { Order, type IOrder } from "../models/Order";
 import {
@@ -17,7 +18,7 @@ import type { WebhookEvent } from "../integrations/payment/payment.types";
 import { confirmStockSale, releaseStock } from "./stock.service";
 import { createNotification } from "./notification.service";
 import { recordAudit } from "./audit.service";
-import { notifyOwnerNewOrder } from "./orderNotification.service";
+import { notifyOwnerNewOrder, notifyCustomerOrderConfirmed } from "./orderNotification.service";
 import { logger } from "../utils/logger";
 import { env } from "../config/env";
 import type { Role } from "../utils/jwt";
@@ -30,21 +31,30 @@ const MANUAL_METHODS = new Set(["cash_on_delivery", "bank_transfer"]);
  * and (indirectly, by NOT calling this) the late-capture-after-cancellation safety branch.
  */
 async function applyCapturedTransition(payment: IPayment, order: IOrder): Promise<void> {
-  payment.status = "captured";
-  payment.paidAt = new Date();
-  await payment.save();
+  const session = await mongoose.startSession();
+  try {
+    await session.withTransaction(async () => {
+      payment.status = "captured";
+      payment.paidAt = new Date();
+      await payment.save({ session });
 
-  order.payment.status = "captured";
-  order.payment.providerReference = payment.transactionId;
-  order.status = "paid";
-  order.payment.processedAt = new Date();
-  await order.save();
+      order.payment.status = "captured";
+      order.payment.providerReference = payment.transactionId;
+      order.status = "paid";
+      order.payment.processedAt = new Date();
+      await order.save({ session });
 
-  for (const item of order.items) {
-    await confirmStockSale(String(item.product), item.quantity, {
-      reason: "Payment captured",
-      orderId: String(order._id),
+      for (const item of order.items) {
+        await confirmStockSale(
+          String(item.product),
+          item.quantity,
+          { reason: "Payment captured", orderId: String(order._id), session },
+          item.variant ? String(item.variant) : undefined,
+        );
+      }
     });
+  } finally {
+    await session.endSession();
   }
 
   await createNotification({
@@ -56,6 +66,7 @@ async function applyCapturedTransition(payment: IPayment, order: IOrder): Promis
   });
 
   await notifyOwnerNewOrder(order);
+  await notifyCustomerOrderConfirmed(order);
 }
 
 /**
@@ -68,19 +79,28 @@ async function applyFailedTransition(
   order: IOrder,
   reason: string,
 ): Promise<void> {
-  payment.status = "failed";
-  await payment.save();
+  const session = await mongoose.startSession();
+  try {
+    await session.withTransaction(async () => {
+      payment.status = "failed";
+      await payment.save({ session });
 
-  order.payment.status = "failed";
-  order.status = "cancelled";
-  order.cancelledReason = reason;
-  await order.save();
+      order.payment.status = "failed";
+      order.status = "cancelled";
+      order.cancelledReason = reason;
+      await order.save({ session });
 
-  for (const item of order.items) {
-    await releaseStock(String(item.product), item.quantity, {
-      reason,
-      orderId: String(order._id),
+      for (const item of order.items) {
+        await releaseStock(
+          String(item.product),
+          item.quantity,
+          { reason, orderId: String(order._id), session },
+          item.variant ? String(item.variant) : undefined,
+        );
+      }
     });
+  } finally {
+    await session.endSession();
   }
 
   await createNotification({
@@ -179,16 +199,19 @@ export async function initializeOrderPayment(
       order.payment.processedAt = new Date();
       order.status = "paid";
       for (const item of order.items) {
-        await confirmStockSale(String(item.product), item.quantity, {
-          reason: "Payment captured",
-          orderId: String(order._id),
-        });
+        await confirmStockSale(
+          String(item.product),
+          item.quantity,
+          { reason: "Payment captured", orderId: String(order._id) },
+          item.variant ? String(item.variant) : undefined,
+        );
       }
     }
     await order.save();
 
     if (result.status === "captured") {
       await notifyOwnerNewOrder(order);
+      await notifyCustomerOrderConfirmed(order);
     }
 
     await recordAudit({
@@ -338,7 +361,11 @@ export async function reconcilePayment(
   if (targetStatus === "captured") {
     await applyCapturedTransition(payment, order);
   } else {
-    await applyFailedTransition(payment, order, reason ?? "Paiement réconcilié manuellement comme échoué");
+    await applyFailedTransition(
+      payment,
+      order,
+      reason ?? "Paiement réconcilié manuellement comme échoué",
+    );
   }
 
   await recordAudit({
@@ -382,7 +409,10 @@ export async function expirePendingPayments(): Promise<number> {
         action: "PAYMENT_EXPIRED",
         resource: "Payment",
         resourceId: String(payment._id),
-        metadata: { orderId: String(order._id), timeoutMinutes: env.PAYMENT_PENDING_TIMEOUT_MINUTES },
+        metadata: {
+          orderId: String(order._id),
+          timeoutMinutes: env.PAYMENT_PENDING_TIMEOUT_MINUTES,
+        },
       });
       expiredCount++;
     } catch (error) {

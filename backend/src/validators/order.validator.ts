@@ -22,6 +22,7 @@ export const createOrderSchema = z.object({
     .array(
       z.object({
         productId: objectId,
+        variantId: objectId.optional(),
         quantity: z.coerce.number().int().positive().max(999),
       }),
     )
@@ -54,9 +55,4 @@ export const orderListQuerySchema = z.object({
   search: z.string().trim().optional(),
   page: z.coerce.number().int().positive().optional(),
   pageSize: z.coerce.number().int().positive().max(100).optional(),
-});
-
-export const applyCouponSchema = z.object({
-  code: z.string().trim().min(1).toUpperCase(),
-  subtotal: z.coerce.number().min(0),
 });

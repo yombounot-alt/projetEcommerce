@@ -72,9 +72,10 @@ describe("Owner new-order email notification", () => {
       .send(checkoutPayload(String(product._id)));
 
     expect(res.status).toBe(201);
-    expect(sendEmailSpy).toHaveBeenCalledTimes(1);
-    const call = sendEmailSpy.mock.calls[0][0];
-    expect(call.to).toBe(env.OWNER_NOTIFICATION_EMAIL);
+    // A manual-method order also triggers the customer confirmation email (see
+    // customerOrderConfirmation.test.ts) — this test only asserts the owner side.
+    expect(sendEmailSpy).toHaveBeenCalledTimes(2);
+    const call = sendEmailSpy.mock.calls.find((c) => c[0].to === env.OWNER_NOTIFICATION_EMAIL)![0];
     expect(call.subject).toContain(res.body.orderNumber);
     expect(call.html).toContain(res.body.orderNumber);
     expect(call.text).toContain(res.body.orderNumber);
@@ -153,7 +154,7 @@ describe("Owner new-order email notification", () => {
       .post("/api/v1/orders")
       .set(authHeader(customer.accessToken))
       .send(checkoutPayload(String(product._id)));
-    expect(sendEmailSpy).toHaveBeenCalledTimes(1);
+    expect(sendEmailSpy).toHaveBeenCalledTimes(2); // owner + customer confirmation
 
     // Simulate a retry / re-entrant call for the very same order (e.g. a repeated
     // webhook, or another code path re-invoking the notifier for an already-notified order).
@@ -161,7 +162,7 @@ describe("Owner new-order email notification", () => {
     await notifyOwnerNewOrder(order!);
     await notifyOwnerNewOrder(order!);
 
-    expect(sendEmailSpy).toHaveBeenCalledTimes(1);
+    expect(sendEmailSpy).toHaveBeenCalledTimes(2);
   });
 
   it("does not fail order creation when the email service is unavailable", async () => {
@@ -195,7 +196,10 @@ describe("Owner new-order email notification", () => {
       .send(checkoutPayload(String(product._id)));
 
     expect(res.status).toBe(201);
-    expect(sendEmailSpy).not.toHaveBeenCalled();
+    // Owner email is skipped (unconfigured), but the customer still gets their confirmation —
+    // that email doesn't depend on OWNER_NOTIFICATION_EMAIL.
+    expect(sendEmailSpy).toHaveBeenCalledTimes(1);
+    expect(sendEmailSpy.mock.calls[0][0].to).toBe("notif-unconfigured@lumera.test");
 
     const order = await Order.findById(res.body.id);
     expect(order!.ownerNotifiedAt).toBeFalsy();

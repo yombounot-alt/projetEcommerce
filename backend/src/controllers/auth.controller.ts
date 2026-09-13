@@ -93,9 +93,9 @@ export const changePassword = catchAsync(async (req: Request, res: Response) => 
 
 export const forgotPassword = catchAsync(async (req: Request, res: Response) => {
   await authService.forgotPassword(req.body.email);
-  res
-    .status(200)
-    .json({ message: "Si un compte existe pour cet email, un lien de réinitialisation a été envoyé." });
+  res.status(200).json({
+    message: "Si un compte existe pour cet email, un lien de réinitialisation a été envoyé.",
+  });
 });
 
 export const resetPassword = catchAsync(async (req: Request, res: Response) => {

@@ -10,16 +10,22 @@ import {
   type PaginatedResult,
 } from "../utils/pagination";
 import { reserveStock, releaseStock } from "./stock.service";
-import { KNOWN_COUPONS, computeDiscount, computeShippingCost } from "../constants/shipping";
+import { computeDiscount, computeShippingCost } from "../constants/shipping";
+import { validateCoupon, incrementCouponUsage } from "./coupon.service";
 import { createNotification } from "./notification.service";
 import { recordAudit } from "./audit.service";
-import { notifyOwnerNewOrder } from "./orderNotification.service";
+import { notifyOwnerNewOrder, notifyCustomerOrderConfirmed } from "./orderNotification.service";
 import { isManualPaymentMethod } from "../integrations/payment/payment.service";
 import type { Role } from "../utils/jwt";
 
 export interface OrderItemInput {
   productId: string;
+  variantId?: string;
   quantity: number;
+}
+
+function formatVariantLabel(attributes: Record<string, string>): string {
+  return Object.values(attributes).join(" / ");
 }
 
 export interface CreateOrderInput {
@@ -41,6 +47,8 @@ export interface OrderDTO {
   items: Array<{
     id: string;
     productId: string;
+    variantId?: string;
+    variantLabel?: string;
     productName: string;
     productImage: string;
     sku: string;
@@ -81,6 +89,8 @@ export function toOrderDTO(order: IOrder): OrderDTO {
     items: order.items.map((item) => ({
       id: String(item._id),
       productId: String(item.product),
+      variantId: item.variant ? String(item.variant) : undefined,
+      variantLabel: item.variantLabel,
       productName: item.productName,
       productImage: item.productImage,
       sku: item.sku,
@@ -138,21 +148,41 @@ export async function createOrder(userId: string, input: CreateOrderInput): Prom
         "PRODUCT_NOT_FOUND",
       );
     }
-    if (product.availableStock < item.quantity) {
+    if (product.variants.length > 0 && !item.variantId) {
+      throw new BadRequestError(
+        `Veuillez sélectionner une variante pour "${product.name}"`,
+        "VARIANT_REQUIRED",
+      );
+    }
+    if (item.variantId) {
+      const variant = product.variants.find((v) => String(v._id) === item.variantId);
+      if (!variant) {
+        throw new NotFoundError(`Variante introuvable pour "${product.name}"`, "VARIANT_NOT_FOUND");
+      }
+      if (variant.availableStock < item.quantity) {
+        throw new BadRequestError(`Stock insuffisant pour "${product.name}"`, "INSUFFICIENT_STOCK");
+      }
+    } else if (product.availableStock < item.quantity) {
       throw new BadRequestError(`Stock insuffisant pour "${product.name}"`, "INSUFFICIENT_STOCK");
     }
   }
 
   const orderItems = input.items.map((item) => {
     const product = productMap.get(item.productId)!;
-    const subtotal = Number((product.price * item.quantity).toFixed(2));
+    const variant = item.variantId
+      ? product.variants.find((v) => String(v._id) === item.variantId)
+      : undefined;
+    const unitPrice = variant?.price ?? product.price;
+    const subtotal = Number((unitPrice * item.quantity).toFixed(2));
     return {
       product: product._id,
+      variant: variant?._id,
+      variantLabel: variant ? formatVariantLabel(variant.attributes) : undefined,
       seller: product.seller,
       productName: product.name,
-      productImage: product.images[0] ?? "",
-      sku: product.sku,
-      unitPrice: product.price,
+      productImage: variant?.image ?? product.images[0] ?? "",
+      sku: variant?.sku ?? product.sku,
+      unitPrice,
       quantity: item.quantity,
       subtotal,
     };
@@ -160,12 +190,7 @@ export async function createOrder(userId: string, input: CreateOrderInput): Prom
 
   const subtotal = Number(orderItems.reduce((sum, item) => sum + item.subtotal, 0).toFixed(2));
   const shippingCost = computeShippingCost(input.shippingMethod, subtotal);
-  const coupon = input.couponCode
-    ? KNOWN_COUPONS.find((c) => c.code === input.couponCode)
-    : undefined;
-  if (input.couponCode && !coupon) {
-    throw new BadRequestError("Code promo invalide ou expiré", "INVALID_COUPON");
-  }
+  const coupon = input.couponCode ? await validateCoupon(input.couponCode, subtotal) : undefined;
   const discount = computeDiscount(coupon, subtotal);
   const total = Number((subtotal + shippingCost - discount).toFixed(2));
 
@@ -179,11 +204,12 @@ export async function createOrder(userId: string, input: CreateOrderInput): Prom
   try {
     await session.withTransaction(async () => {
       for (const item of input.items) {
-        await reserveStock(item.productId, item.quantity, {
-          reason: "Order checkout reservation",
-          actorId: userId,
-          session,
-        });
+        await reserveStock(
+          item.productId,
+          item.quantity,
+          { reason: "Order checkout reservation", actorId: userId, session },
+          item.variantId,
+        );
       }
 
       const [created] = await Order.create(
@@ -216,6 +242,10 @@ export async function createOrder(userId: string, input: CreateOrderInput): Prom
         { session },
       );
       order = created;
+
+      if (coupon) {
+        await incrementCouponUsage(coupon.code, session);
+      }
     });
   } finally {
     await session.endSession();
@@ -245,6 +275,7 @@ export async function createOrder(userId: string, input: CreateOrderInput): Prom
   // initializeOrderPayment/applyWebhookEvent in payment.service.ts.
   if (isManualPaymentMethod(order.payment.method)) {
     await notifyOwnerNewOrder(order);
+    await notifyCustomerOrderConfirmed(order);
   }
 
   return toOrderDTO(order);
@@ -256,9 +287,12 @@ export async function cancelUnpaidOrder(orderId: string, reason: string): Promis
   if (!order || order.status !== "pending") return;
 
   for (const item of order.items) {
-    await releaseStock(String(item.product), item.quantity, {
-      reason: "Order cancelled: " + reason,
-    });
+    await releaseStock(
+      String(item.product),
+      item.quantity,
+      { reason: "Order cancelled: " + reason },
+      item.variant ? String(item.variant) : undefined,
+    );
   }
 
   order.status = "cancelled";
@@ -365,6 +399,18 @@ export async function updateOrderStatus(
     );
   }
 
+  // A seller can fulfill (processing/shipped/delivered) or cancel their own orders, but
+  // must never be able to mark one "refunded" directly: that would desync Order.status from
+  // the actual Payment, which is only ever refunded through the admin-only refund endpoint
+  // (see payment.service.ts#refundPayment, which sets order.status = "refunded" itself once
+  // the real refund succeeds).
+  if (actor.role === "seller" && status === "refunded") {
+    throw new ForbiddenError(
+      "Un remboursement doit être initié via le remboursement du paiement, pas en changeant le statut de la commande",
+      "ORDER_STATUS_FORBIDDEN",
+    );
+  }
+
   if (!VALID_TRANSITIONS[order.status].includes(status)) {
     throw new BadRequestError(
       `Impossible de faire passer la commande de "${order.status}" à "${status}"`,
@@ -374,11 +420,12 @@ export async function updateOrderStatus(
 
   if (status === "cancelled" && ["pending", "paid"].includes(order.status)) {
     for (const item of order.items) {
-      await releaseStock(String(item.product), item.quantity, {
-        reason: "Order cancelled",
-        actorId: actor.id,
-        orderId: String(order._id),
-      });
+      await releaseStock(
+        String(item.product),
+        item.quantity,
+        { reason: "Order cancelled", actorId: actor.id, orderId: String(order._id) },
+        item.variant ? String(item.variant) : undefined,
+      );
     }
   }
 
@@ -402,18 +449,4 @@ export async function updateOrderStatus(
   });
 
   return toOrderDTO(order);
-}
-
-export function applyCoupon(code: string, subtotal: number) {
-  const coupon = KNOWN_COUPONS.find((c) => c.code === code.toUpperCase());
-  if (!coupon) {
-    throw new BadRequestError("Code promo invalide ou expiré", "INVALID_COUPON");
-  }
-  if (coupon.minSubtotal && subtotal < coupon.minSubtotal) {
-    throw new BadRequestError(
-      `Ce code promo nécessite un sous-total minimum de ${coupon.minSubtotal}`,
-      "COUPON_MIN_SUBTOTAL",
-    );
-  }
-  return coupon;
 }

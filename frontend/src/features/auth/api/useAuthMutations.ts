@@ -19,7 +19,11 @@ async function mergeGuestStateIntoServer(session: AuthSession) {
 
   const guestCartItems = useCartStore.getState().items;
   if (guestCartItems.length > 0) {
-    await Promise.all(guestCartItems.map((item) => cartService.addItem(item.productId, item.quantity)));
+    await Promise.all(
+      guestCartItems.map((item) =>
+        cartService.addItem(item.productId, item.quantity, item.variantId),
+      ),
+    );
     useCartStore.getState().clear();
   }
 
@@ -33,7 +37,8 @@ async function mergeGuestStateIntoServer(session: AuthSession) {
 export function useLoginMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (credentials: Pick<LoginFormValues, "email" | "password">) => authService.login(credentials),
+    mutationFn: (credentials: Pick<LoginFormValues, "email" | "password">) =>
+      authService.login(credentials),
     onSuccess: async (session) => {
       useAuthStore.getState().setSession(session);
       await mergeGuestStateIntoServer(session);
@@ -85,7 +90,13 @@ export function useUpdateProfileMutation() {
 
 export function useChangePasswordMutation() {
   return useMutation({
-    mutationFn: ({ currentPassword, newPassword }: { currentPassword: string; newPassword: string }) => {
+    mutationFn: ({
+      currentPassword,
+      newPassword,
+    }: {
+      currentPassword: string;
+      newPassword: string;
+    }) => {
       const userId = useAuthStore.getState().user?.id;
       if (!userId) throw new Error("Aucun utilisateur connecté.");
       return authService.changePassword(userId, currentPassword, newPassword);

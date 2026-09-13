@@ -8,7 +8,14 @@ import { PageHeader } from "@/components/common/PageHeader";
 import { Seo } from "@/components/common/Seo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -41,11 +48,16 @@ export default function AdminSettingsPage() {
   return (
     <div className="space-y-6">
       <Seo title="Paramètres" noIndex />
-      <PageHeader title="Paramètres" description="Configurez les préférences générales de la plateforme." />
+      <PageHeader
+        title="Paramètres"
+        description="Configurez les préférences générales de la plateforme."
+      />
 
       <div className="max-w-2xl space-y-6">
         <Card>
-          <CardHeader><CardTitle>Informations de la boutique</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle>Informations de la boutique</CardTitle>
+          </CardHeader>
           <CardContent>
             {isLoading ? (
               <LoadingState className="min-h-[10vh]" label="Chargement des paramètres…" />
@@ -58,7 +70,9 @@ export default function AdminSettingsPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Nom de la boutique</FormLabel>
-                        <FormControl><Input {...field} /></FormControl>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -69,7 +83,9 @@ export default function AdminSettingsPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Email de support</FormLabel>
-                        <FormControl><Input type="email" {...field} /></FormControl>
+                        <FormControl>
+                          <Input type="email" {...field} />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -84,12 +100,16 @@ export default function AdminSettingsPage() {
         </Card>
 
         <Card>
-          <CardHeader><CardTitle>Apparence</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle>Apparence</CardTitle>
+          </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between rounded-lg border border-border p-4">
               <div>
                 <Label htmlFor="dark-theme">Thème sombre</Label>
-                <p className="text-xs text-muted-foreground">Actuellement : {resolvedTheme === "dark" ? "sombre" : "clair"}</p>
+                <p className="text-xs text-muted-foreground">
+                  Actuellement : {resolvedTheme === "dark" ? "sombre" : "clair"}
+                </p>
               </div>
               <Switch
                 id="dark-theme"

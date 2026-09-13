@@ -17,8 +17,8 @@ export interface CartApi {
   /** true si le panier est celui du serveur (client authentifié), false si panier invité local. */
   isSynced: boolean;
   addItem: (item: CartItem) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
-  removeItem: (productId: string) => void;
+  updateQuantity: (productId: string, quantity: number, variantId?: string) => void;
+  removeItem: (productId: string, variantId?: string) => void;
   clear: () => void;
 }
 
@@ -56,12 +56,17 @@ export function useCart(): CartApi {
       itemCount: cartQuery.data?.itemCount ?? 0,
       isLoading: cartQuery.isLoading,
       isSynced: true,
-      addItem: (item) => addMutation.mutate({ productId: item.productId, quantity: item.quantity }),
-      updateQuantity: (productId, quantity) =>
+      addItem: (item) =>
+        addMutation.mutate({
+          productId: item.productId,
+          quantity: item.quantity,
+          variantId: item.variantId,
+        }),
+      updateQuantity: (productId, quantity, variantId) =>
         quantity <= 0
-          ? removeMutation.mutate(productId)
-          : updateMutation.mutate({ productId, quantity }),
-      removeItem: (productId) => removeMutation.mutate(productId),
+          ? removeMutation.mutate({ productId, variantId })
+          : updateMutation.mutate({ productId, quantity, variantId }),
+      removeItem: (productId, variantId) => removeMutation.mutate({ productId, variantId }),
       clear: () => clearMutation.mutate(),
     };
   }

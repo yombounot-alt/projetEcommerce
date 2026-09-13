@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Seo } from "@/components/common/Seo";
 import { ROUTES } from "@/constants/routes.constants";
+import { useAddressesQuery } from "@/features/addresses/api/useAddressesQuery";
 import { CartSummary } from "@/features/cart/components/CartSummary";
 import { useCart } from "@/features/cart/api/useCart";
 import { useInitializePaymentMutation } from "@/features/checkout/api/usePaymentMutations";
@@ -31,7 +32,10 @@ const STEPS = [
 export default function CheckoutPage() {
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
-  const { items, subtotal, isLoading: isCartLoading, clear: clearCart } = useCart();
+  const { items, subtotal, isLoading: isCartLoading, isSynced, clear: clearCart } = useCart();
+  // Adresses enregistrées uniquement pour un client connecté (isSynced) — un invité n'a pas
+  // de session, `/auth/addresses` répondrait 401.
+  const { data: addresses } = useAddressesQuery(isSynced);
   const createOrder = useCreateOrderMutation();
   const initializePayment = useInitializePaymentMutation();
   const isSubmitting = createOrder.isPending || initializePayment.isPending;
@@ -61,6 +65,32 @@ export default function CheckoutPage() {
     methodId: "standard",
   });
   const [shippingCost, setShippingCost] = useState(0);
+
+  // Pré-remplit avec l'adresse par défaut d'un client de retour, pour lui éviter de la
+  // ressaisir — seulement si les champs sont encore vides (ne jamais écraser une saisie déjà
+  // commencée). Ne s'applique qu'à ShippingAddressStep (étape 1, atteinte après un aller-retour
+  // utilisateur donc largement après la résolution de la requête) : react-hook-form ne capture
+  // ses `defaultValues` qu'au montage, donc un pré-remplissage de CustomerInfoStep (étape 0,
+  // déjà montée à l'arrivée sur la page) arriverait trop tard pour avoir un effet visible.
+  useEffect(() => {
+    const defaultAddress = addresses?.find((a) => a.isDefault) ?? addresses?.[0];
+    if (!defaultAddress) return;
+    setShippingAddress((prev) =>
+      prev.line1
+        ? prev
+        : {
+            fullName: defaultAddress.fullName,
+            line1: defaultAddress.line1,
+            line2: defaultAddress.line2,
+            city: defaultAddress.city,
+            state: defaultAddress.state,
+            postalCode: defaultAddress.postalCode,
+            country: defaultAddress.country,
+            phone: defaultAddress.phone,
+            saveAddress: false,
+          },
+    );
+  }, [addresses]);
 
   // isCartLoading guards against a false-positive redirect: on a fresh page load the
   // server cart query hasn't resolved yet, so `items` is momentarily empty even for a

@@ -32,16 +32,15 @@ import type {
  *   rejected with 400 `{"message": "Le champ [ notify_url ] doit utiliser le protocole HTTPS."}`.
  *   In local dev, `BACKEND_PUBLIC_URL` must point at an HTTPS tunnel (ngrok, Cloudflare
  *   Tunnel...) or every initialize call will fail with this exact error.
- * - Webhooks: the guide confirms ChapchaPay POSTs to `notify_url` when the operation status
- *   changes, that requests must be treated idempotently (an operation can receive several
- *   webhooks), and that a `CCP-HMAC-Signature` header must be verified. It does NOT publish
- *   the exact webhook JSON field names or the exact string that is HMAC-signed — that detail
- *   lives behind a merchant-login-gated "Référence API" page. `parseWebhook` below assumes
- *   the webhook body mirrors the operation-creation response shape (`operation_id`, `status`,
- *   `amount`, `order_id`) and that the signature is
- *   `hex(HMAC-SHA256(CHAPCHAPAY_HMAC_SECRET, <raw request body>))` — the industry-standard
- *   construction used by most providers. **Not yet confirmed with a real delivered webhook —
- *   confirm against an actual received payload before relying on this in production.**
+ * - Webhooks: confirmed against a real delivered webhook (2026-09-13, live "Kulu" test payment,
+ *   order LUM-102345). Real payload shape:
+ *   `{ order_id, operation_id, amount, description, status: { code, description },
+ *     transaction: { payment_method, payment_method_reference, payer_info, payment_reference,
+ *     transaction_date } }` — note `status` is a NESTED OBJECT (`status.code`), not the flat
+ *   string the operation-creation response's field names would suggest. Signature confirmed:
+ *   `CCP-HMAC-Signature` = `hex(HMAC-SHA256(CHAPCHAPAY_HMAC_SECRET, <raw request body>))`.
+ *   Only `status.code === "success"` has been observed for real; the other codes below are
+ *   still a best guess — confirm against a real failed/expired payload if one is ever received.
  * - `verifyPayment` (status polling) and `refundPayment` (PUSH API) are not documented at
  *   all in the public guide, so no request is invented for them — they throw a clear error
  *   instead of guessing an endpoint that could silently do the wrong thing with real money.
@@ -175,9 +174,10 @@ export class ChapchaPayProvider implements PaymentProvider {
     let payload: {
       operation_id?: string;
       order_id?: string;
-      status?: string;
+      status?: { code?: string; description?: string };
       amount?: number;
-      amount_formatted?: string;
+      description?: string;
+      transaction?: Record<string, unknown>;
     };
     try {
       payload = JSON.parse(bodyBuffer.toString("utf8"));
@@ -185,9 +185,10 @@ export class ChapchaPayProvider implements PaymentProvider {
       throw new BadRequestError("Corps du webhook ChapchaPay invalide (JSON attendu)");
     }
 
-    if (!payload.operation_id || !payload.status || typeof payload.amount !== "number") {
+    const statusCode = payload.status?.code;
+    if (!payload.operation_id || !statusCode || typeof payload.amount !== "number") {
       throw new BadRequestError(
-        "Payload webhook ChapchaPay incomplet (operation_id, status, amount requis)",
+        "Payload webhook ChapchaPay incomplet (operation_id, status.code, amount requis)",
         "WEBHOOK_PAYLOAD_INVALID",
       );
     }
@@ -196,9 +197,9 @@ export class ChapchaPayProvider implements PaymentProvider {
     // with status makes each distinct status transition idempotent (a duplicate delivery
     // of the same status is a no-op) while still letting failed -> success retries through.
     return {
-      eventId: `${payload.operation_id}:${payload.status}`,
+      eventId: `${payload.operation_id}:${statusCode}`,
       transactionId: payload.operation_id,
-      status: mapChapchaPayStatus(payload.status),
+      status: mapChapchaPayStatus(statusCode),
       amount: payload.amount,
       currency: "GNF",
       raw: payload as Record<string, unknown>,

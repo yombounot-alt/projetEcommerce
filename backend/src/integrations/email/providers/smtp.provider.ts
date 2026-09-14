@@ -24,6 +24,14 @@ export class SmtpEmailProvider implements EmailProvider {
       port: env.SMTP_PORT,
       secure: env.SMTP_SECURE,
       auth: env.SMTP_USER ? { user: env.SMTP_USER, pass: env.SMTP_PASSWORD } : undefined,
+      // Nodemailer's defaults (2 min connection timeout) turn a silently-dropped SMTP
+      // connection (e.g. a host whose network drops outbound port 587/465, observed on
+      // Railway) into a multi-minute hang per attempt — with email.service.ts's 3 retries
+      // that stalls the calling request (order creation, payment webhook) for 5+ minutes.
+      // Bounding each stage to a few seconds makes a blocked path fail fast instead.
+      connectionTimeout: 4_000,
+      greetingTimeout: 4_000,
+      socketTimeout: 4_000,
     });
   }
 

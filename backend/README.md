@@ -127,7 +127,7 @@ Credentials are printed to the console after seeding.
 
 ```bash
 npm run build    # tsc -> dist/
-npm start        # node dist/server.js
+npm start        # node dist/src/server.js
 ```
 
 ## Production
@@ -261,7 +261,7 @@ frontend service call, this backend matches the frontend's real, already-defined
 
 ## Deployment
 
-Ubuntu + Nginx + PM2 + MongoDB Atlas (or a self-hosted replica set) + HTTPS. `pm2 start dist/server.js -i max` for cluster mode; point Nginx at it as a reverse proxy and terminate TLS there. Set `FRONTEND_URL` to the real deployed frontend origin — CORS only allows that one origin, never `*`.
+Ubuntu + Nginx + PM2 + MongoDB Atlas (or a self-hosted replica set) + HTTPS. `pm2 start dist/src/server.js -i max` for cluster mode; point Nginx at it as a reverse proxy and terminate TLS there. Set `FRONTEND_URL` to the real deployed frontend origin — CORS only allows that one origin, never `*`.
 
 ## Troubleshooting
 

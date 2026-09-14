@@ -3,9 +3,11 @@ import { logger } from "../../utils/logger";
 import type { EmailProvider } from "./email.interface";
 import type { SendEmailInput, SendEmailResult } from "./email.types";
 import { ConsoleEmailProvider } from "./providers/console.provider";
+import { ResendEmailProvider } from "./providers/resend.provider";
 import { SmtpEmailProvider } from "./providers/smtp.provider";
 
 function resolveEmailProvider(): EmailProvider {
+  if (env.RESEND_API_KEY) return new ResendEmailProvider();
   return env.SMTP_HOST ? new SmtpEmailProvider() : new ConsoleEmailProvider();
 }
 

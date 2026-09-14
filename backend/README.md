@@ -209,11 +209,19 @@ OTPs are hashed at rest, expire after 10 minutes, and are attempt-limited.
 
 ## Owner new-order email notification
 
-Same interface/adapter pattern as payments/SMS (`src/integrations/email`). `console` provider
-(real, logs the email — used automatically when `SMTP_HOST` is unset, e.g. dev/test) vs. `smtp`
-provider (real, nodemailer-based — works with any SMTP server/provider: SendGrid, Mailgun, SES,
-Gmail SMTP, a local relay, ...). Configure via `SMTP_HOST` / `SMTP_PORT` / `SMTP_SECURE` /
-`SMTP_USER` / `SMTP_PASSWORD` / `EMAIL_FROM_ADDRESS` / `EMAIL_FROM_NAME`.
+Same interface/adapter pattern as payments/SMS (`src/integrations/email`), three providers
+selected by whichever is configured (`RESEND_API_KEY` > `SMTP_HOST` > `console` fallback):
+- `resend` (real, HTTP API — sends over HTTPS/443). **Preferred for any host that blocks
+  outbound SMTP ports**, which includes Railway (confirmed: it silently drops all outbound
+  traffic to port 587). Configure via `RESEND_API_KEY` (free tier, no card required, see
+  https://resend.com) plus `EMAIL_FROM_ADDRESS` / `EMAIL_FROM_NAME`.
+- `smtp` (real, nodemailer-based — works with any SMTP server/provider: SendGrid, Mailgun,
+  SES, Gmail SMTP, a local relay, ...), only used when `RESEND_API_KEY` is unset. Configure
+  via `SMTP_HOST` / `SMTP_PORT` / `SMTP_SECURE` / `SMTP_USER` / `SMTP_PASSWORD` /
+  `EMAIL_FROM_ADDRESS` / `EMAIL_FROM_NAME`. Connection/greeting/socket timeouts are bounded
+  to 4s so a blocked network path fails fast instead of stalling the caller for minutes.
+- `console` (real, logs the email instead of sending — used automatically when neither of the
+  above is configured, e.g. dev/test).
 
 - **What triggers it**: `OWNER_NOTIFICATION_EMAIL` receives a "Nouvelle commande reçue" email
   (HTML + plain-text fallback) as soon as an order is **successfully and definitively confirmed**:

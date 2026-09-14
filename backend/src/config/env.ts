@@ -37,6 +37,10 @@ const envSchema = z.object({
   SMS_SENDER: z.string().optional().default("Lumera"),
 
   // === Email (générique — voir src/integrations/email) ===
+  // API HTTP (Resend) — préférée dès qu'elle est configurée : envoie sur le port 443, donc
+  // fonctionne même sur un hébergeur qui bloque le SMTP sortant (confirmé sur Railway,
+  // voir smtp.provider.ts). SMTP reste disponible en repli pour qui a un relais non bloqué.
+  RESEND_API_KEY: z.string().optional().default(""),
   SMTP_HOST: z.string().optional().default(""),
   SMTP_PORT: z.coerce.number().int().positive().optional().default(587),
   SMTP_SECURE: z.coerce.boolean().optional().default(false),

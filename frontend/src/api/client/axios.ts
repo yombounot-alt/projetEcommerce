@@ -50,6 +50,22 @@ const NO_REFRESH_PATHS = ["/auth/login", "/auth/register", "/auth/refresh"];
 
 let pendingRefresh: Promise<string | null> | null = null;
 
+/**
+ * Point d'entrée unique pour renouveler l'access token — partagé par l'intercepteur 401
+ * ci-dessous ET par le bootstrap proactif de AppProviders (voir son commentaire). Sans ce
+ * partage, un rechargement de page pouvait déclencher deux appels /auth/refresh concurrents
+ * (un du bootstrap, un du premier 401 sur cart/wishlist) : le refresh token étant à usage
+ * unique (rotation), le second échouait alors avec REFRESH_TOKEN_REVOKED — observé en
+ * production. `pendingRefresh` garantit qu'un seul appel réseau est jamais en vol, quel que
+ * soit le nombre d'appelants concurrents.
+ */
+export function refreshAccessTokenOnce(): Promise<string | null> {
+  pendingRefresh ??= refreshAccessToken().finally(() => {
+    pendingRefresh = null;
+  });
+  return pendingRefresh;
+}
+
 httpClient.interceptors.request.use((config) => {
   const token = getAccessToken();
   if (token) {
@@ -73,10 +89,7 @@ httpClient.interceptors.response.use(
 
     if (isRefreshable) {
       originalRequest._retry = true;
-      pendingRefresh ??= refreshAccessToken().finally(() => {
-        pendingRefresh = null;
-      });
-      const newToken = await pendingRefresh;
+      const newToken = await refreshAccessTokenOnce();
       if (newToken) {
         originalRequest.headers.set("Authorization", `Bearer ${newToken}`);
         return httpClient(originalRequest);
